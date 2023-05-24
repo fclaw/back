@@ -25,7 +25,7 @@ RUN apt update && \
 # ENV USER nix
 # WORKDIR /home/nix
 
-# COPY --chown=nix:nix . .
+COPY --chown=nix:nix . .
 
 # RUN touch .bash_profile && deploy/nix.sh 
 
