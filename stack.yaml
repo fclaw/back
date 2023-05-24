@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver:  lts-20.21
+resolver:  lts-19.32
 
 # compiler: ghc-9.6.1
 
