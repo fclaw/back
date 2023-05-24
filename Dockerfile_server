@@ -1,6 +1,6 @@
 FROM fpco/stack-build-small:lts-20.0
 
-RUN apt upgrade && \
+RUN apt update && \
     apt install -y curl && \
     apt install -y tar && \
     apt install -y xz-utils
