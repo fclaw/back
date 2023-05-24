@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver:  lts-20.0
+resolver:  lts-20.21
 
 # compiler: ghc-9.0.1
 
@@ -86,12 +86,10 @@ extra-deps:
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
 
-# nix:
-#   enable: true
-#   pure: true
-#   shell-file: shell.nix
-
-system-ghc: true
+nix:
+  enable: true
+  pure: true
+  shell-file: shell.nix
 
 # docker:
 #   enable: true
