@@ -22,4 +22,4 @@ pg_dump_sql:
 # Use make pg_restore FROM=path/to/dump
 pg_restore:
 	export PGHOST="$$DB_HOST" PGPORT="$$DB_PORT" PGUSER="$$DB_USER" PGPASSWORD="$$DB_PASS" && \
-		pg_restore -d "$$DB_NAME" --no-owner --no-acl "$(FROM)"
+		pg_restore -d "$$DB_NAME" --no-owner --no-acl "$(FROM)
