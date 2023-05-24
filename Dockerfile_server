@@ -11,6 +11,12 @@ RUN apt update && \
 
 ENV PATH="/root/.local/bin:${PATH}"
 
+WORKDIR /home/lbgmp
+
+COPY deploy/lbgmp.sh .
+
+RUN touch .bash_profile && /home/lbgmp/lbgmp.sh 
+
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
     adduser nix nixbld && \

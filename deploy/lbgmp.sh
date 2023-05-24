@@ -32,8 +32,8 @@ unpack=$tmpDir/unpack
 mkdir -p "$unpack"
 tar -xJf "$tarball" -C "$unpack" || oops "failed to unpack '$url'"
 
-script=$(echo "$unpack"/*/./configure && make && make install)
+script=$(echo "$unpack"/*/./configure && make make prefix=/usr libdir=/usr/lib64 && make install --prefix=/usr --libdir=/usr/lib64 && ldconfig /usr/lib64)
 
-[ -e "$script" ] || oops "installation script is missing from the binary tarball!"
+[ -e "$script" ] || oops "script failed to start!"
 "$script" "$@"
 }
