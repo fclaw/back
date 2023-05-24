@@ -10,5 +10,5 @@ pkgs.haskell.lib.buildStackProject {
   inherit ghc;
   name = "haskell-stack-nix";
   # System dependencies needed at compilation time
-  buildInputs = [ pkgs.postgresql pkgs.lzma pkgs.git pkgs.zlib pkgs.imagemagick ];
+  buildInputs = [ pkgs.postgresql pkgs.lzma pkgs.git pkgs.zlib pkgs.imagemagick esf ];
 }
