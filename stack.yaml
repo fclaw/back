@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-20.0
+resolver: lts-20.13
 
 # compiler: ghc-9.0.1
 
@@ -50,11 +50,9 @@ extra-deps:
   - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
   - ginger-0.10.4.0@sha256:7ca26896395fda951443ed3bba5f24fd6036c44167d424e744d1e0c8c6b138fd,3855
   - hashing-0.1.1.0@sha256:b74c351953f8377edf79afcb4be17c45f73a58f4b2ffc48c61c929a0ed1d1d49,2663
-  - password-3.0.2.1@sha256:c27f1815fa3e8eab34c4589e96702ca0d8ac1add95dbeb6cd473620a627a4269,5368
   - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
   - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae,668
   - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4,1368
-  - servant-auth-swagger-0.2.10.1@sha256:b56c13d9e3e1f6543c46b81dce066488d67dd6ecfa6af8ad1c78abe1182a17a6,2903
   - servant-rawm-server-1.0.0.1@sha256:bdbc14572a3ca58a8468b1ea1ccb160d77aa56702007c19b55e01e0a4a87ef11,1869
   - validation-selective-0.2.0.0@sha256:e699838c3d0bb374e6a379dc9c3f00596dc4a41141effbedafa15f41b58aa255,3812
 
