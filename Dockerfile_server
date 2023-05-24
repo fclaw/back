@@ -4,7 +4,8 @@ RUN apt update --fix-missing && \
     apt install -y curl && \
     apt install -y tar && \
     apt install -y xz-utils && \  
-    apt install -y libgmp3-dev && \
+    apt install -y libgmp10 && \
+    apt install -y libgmp-dev && \
     apt install -y autoconf && \
     curl -sSL https://get.haskellstack.org/ | sh
 
@@ -25,9 +26,9 @@ RUN touch .bash_profile && deploy/nix.sh
 
 ENV PATH="/home/nix/bin:${PATH}"
 
-RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
-    cd ImageMagick && git checkout 7.0.10-3 && \
-    ./configure --prefix=/home/nix && make && make install
+# RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
+#     cd ImageMagick && git checkout 7.0.10-3 && \
+#     ./configure --prefix=/home/nix && make && make install
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install --fast -j12 --test
