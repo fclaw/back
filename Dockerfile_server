@@ -1,16 +1,18 @@
-FROM fpco/stack-build-small:lts-20
+FROM ubuntu:latest
+
+RUN mkdir /opt/build
+WORKDIR /opt/build
 
 RUN apt update && \
     apt install -y curl && \
     apt install -y tar && \
     apt install -y xz-utils && \
-    apt download libgmp10
+    apt download libgmp10 && \
+    curl -sSL https://get.haskellstack.org/ | sh
 
-RUN mkdir /libgmp/build
-WORKDIR /libgmp/build
-
+# https://gist.github.com/TimWSpence/9b89b0915bf5224128e4b96abfd4ce02
 RUN mv libgmp*.deb libgmp.deb
-RUN dpkg -i /libgmp/build/libgmp.deb
+RUN dpkg -i /opt/build/libgmp.deb
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
