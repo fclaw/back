@@ -1,6 +1,6 @@
 FROM fpco/stack-build-small:lts-20.0
 
-RUN apt upgrade --no-cache
+RUN apt upgrade
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
