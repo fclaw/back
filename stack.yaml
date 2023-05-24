@@ -91,6 +91,8 @@ nix:
   pure: true
   shell-file: shell.nix
 
+system-ghc: true
+
 # docker:
 #   enable: true
 #   auto-pull: true
