@@ -23,13 +23,14 @@ require_util() {
 }
 
 case "$(uname -s).$(uname -m)" in
-    Linux.x86_64) system=x86_64-linux; hash=bb1bc35b55b1b199e391000ad12bb1b9d39114765a6a2f6110e458a046624ed6;;
+    Linux.x86_64) system=x86_64-linux; hash=afa6bf82bacb18ec0d6a1fd992b718192f895023d6cea8b94b2fb35fce352ff5;;
+     Linux.aarch64) system=aarch64-linux; hash=dfbbaa86404c3efe74d87c8d4c39081affc673c8b5f64cfefc4ab0eaf84ed39b;;
     *) oops "sorry, there is no binary distribution of Nix for your platform";;
 esac
 
-url="https://releases.nixos.org/nix/nix-2.3.3/nix-2.3.3-$system.tar.xz"
+url="https://releases.nixos.org/nix/nix-2.13.3/nix-2.13.3-$system.tar.xz"
 
-tarball="$tmpDir/$(basename "$tmpDir/nix-2.3.3-$system.tar.xz")"
+tarball="$tmpDir/$(basename "$tmpDir/nix-2.13.3-$system.tar.xz")"
 
 require_util curl "download the binary tarball"
 require_util tar "unpack the binary tarball"
