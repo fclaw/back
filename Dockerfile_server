@@ -5,6 +5,7 @@ RUN apt update --fix-missing && \
     apt install -y tar && \
     apt install -y xz-utils && \  
     apt install -y libgmp3-dev && \
+    apt install -y autoconf && \
     curl -sSL https://get.haskellstack.org/ | sh
 
 RUN addgroup --system nixbld && \
