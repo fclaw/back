@@ -2,7 +2,7 @@ let
   sources = import ./sources.nix;
   pkgs = import sources.nixpkgs { };
 
-  gmp = pkgs.picom.overrideAttrs (old: {
+  gmp = pkgs.gmp.overrideAttrs (old: {
       name = "gmp-6.2.1";
       src = fetchurl {
         url = https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz;
