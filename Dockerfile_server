@@ -1,9 +1,4 @@
-FROM ubuntu:latest
-
-RUN mkdir /opt/build
-WORKDIR /opt/build
-
-# ENV PATH="/usr/local/lib/:/usr/local/lib64:/usr/lib:/usr/lib64:${PATH}"
+FROM --platform=amd64 ubuntu:latest
 
 RUN apt update && \
     apt install -y curl && \
@@ -14,33 +9,33 @@ RUN apt update && \
     apt install -y libgmp-dev && \
     curl -sSL https://get.haskellstack.org/ | sh
 
-RUN ldconfig /usr/local/lib
-RUN ldconfig /usr/local/lib64
-RUN ldconfig /usr/lib 
-RUN ldconfig /usr/lib64
+# RUN ldconfig /usr/local/lib
+# RUN ldconfig /usr/local/lib64
+# RUN ldconfig /usr/lib 
+# RUN ldconfig /usr/lib64
 
-RUN addgroup --system nixbld && \
-    adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
-    adduser nix nixbld && \
-    mkdir -m 0755 /nix && chown nix /nix && \
-    mkdir -p /etc/nix && echo 'sandbox = false' > /etc/nix/nix.conf
+# RUN addgroup --system nixbld && \
+#     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
+#     adduser nix nixbld && \
+#     mkdir -m 0755 /nix && chown nix /nix && \
+#     mkdir -p /etc/nix && echo 'sandbox = false' > /etc/nix/nix.conf
 
-CMD /bin/bash -l
-USER nix
-ENV USER nix
-WORKDIR /home/nix
+# CMD /bin/bash -l
+# USER nix
+# ENV USER nix
+# WORKDIR /home/nix
 
-COPY --chown=nix:nix . .
+# COPY --chown=nix:nix . .
 
-RUN touch .bash_profile && deploy/nix.sh 
+# RUN touch .bash_profile && deploy/nix.sh 
 
-ENV PATH="/home/nix/bin:${PATH}"
+# ENV PATH="/home/nix/bin:${PATH}"
 
 # RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
 #     cd ImageMagick && git checkout 7.0.10-3 && \
 #     ./configure --prefix=/home/nix && make && make install
 
-RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      stack install --fast -j12 --test
+# RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
+RUN stack install --fast -j12 --test
 
 ENTRYPOINT ["/home/nix/deploy/init.sh"]
