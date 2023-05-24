@@ -1,13 +1,6 @@
 FROM fpco/alpine-haskell-stack:9.2.5
 
-RUN apk upgrade --no-cache &&\
-    apk add --no-cache \
-    apk install -y curl \
-    apk install -y tar  \
-    apk install -y xz-utils \  
-    apk install -y libgmp10  \
-    apk install -y libgmp-dev \
-    apk install -y autoconf
+RUN apk upgrade --no-cache && apk add --no-cache
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
