@@ -23,7 +23,7 @@ let
     '';
   };
 
-  deps = with pkgs; [ gmp gmp-with-cxx-6.2.1 ];
+  deps = with pkgs; [ gmp ];
 
 in
 pkgs.mkShell {

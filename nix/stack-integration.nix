@@ -7,6 +7,7 @@ in
 { ghc }:
 
 pkgs.haskell.lib.buildStackProject {
+  
   inherit ghc;
   name = "haskell-stack-nix";
   # System dependencies needed at compilation time
