@@ -89,8 +89,7 @@ extra-deps:
 nix:
   enable: true
   pure: true
-  packages: [postgresql lzma git zlib imagemagick gmp]
-  # shell-file: shell.nix
+  shell-file: shell.nix
 
 # docker:
 #   enable: true

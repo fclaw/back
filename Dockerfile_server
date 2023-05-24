@@ -6,18 +6,7 @@ RUN apt update && \
     apt install -y xz-utils && \
     apt install -y libgmp10 && \
     apt install -y libgmp3-dev && \
-    apt install -y libgmp-dev && \
-    curl -sSL https://get.haskellstack.org/ | sh
-
-ENV PATH="/root/.local/bin:${PATH}"
-
-RUN echo $LD_LIBRARY_PATH
-
-# WORKDIR /home/lbgmp
-
-# COPY deploy/lbgmp.sh .
-
-# RUN touch .bash_profile && /home/lbgmp/lbgmp.sh 
+    apt install -y libgmp-dev
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
@@ -41,6 +30,6 @@ ENV PATH="/home/nix/bin:${PATH}"
 #     ./configure --prefix=/home/nix && make && make install
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-       stack install --fast -j12 --test
+       nix-shell --run "stack install --fast -j12 --test"
 
 ENTRYPOINT ["/home/nix/deploy/init.sh"]
