@@ -1,11 +1,12 @@
-FROM fpco/stack-build:lts-20
+FROM ubunu:latest
 
 RUN apt update && \
     apt install -y curl && \
     apt install -y tar && \
     apt install -y xz-utils && \
     apt install -y libgmp-dev && \
-    apt install -y libgmp10
+    apt install -y libgmp10 && \
+    curl -sSL https://get.haskellstack.org/ | sh
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
