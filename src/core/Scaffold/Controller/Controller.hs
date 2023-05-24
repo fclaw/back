@@ -1,0 +1,114 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE LambdaCase #-}
+
+module Scaffold.Controller.Controller (controller) where
+
+import Scaffold.Api
+-- controllers
+import qualified Scaffold.Controller.File.Upload as File.Upload
+import qualified Scaffold.Controller.File.Download as File.Download
+import qualified Scaffold.Controller.File.Delete as File.Delete
+import qualified Scaffold.Controller.File.Patch as File.Patch
+import qualified Scaffold.Controller.Frontend.Log as Frontend.Log
+import Servant.RawM.Server ()
+import Scaffold.Auth
+import Scaffold.Transport.Response
+import Scaffold.Transport.Model.User (BasicAuth (..))
+
+import Katip
+import KatipController
+import Servant.Server.Generic
+import Servant.API.Generic
+import Servant.Ip
+import Control.Monad.Time
+import BuildInfo
+import Data.Functor
+import Servant.Auth.Server (AuthResult (..), wwwAuthenticatedErr)
+import Control.Monad.Except
+
+controller :: Api (AsServerT KatipController)
+controller = Api { _apiHttp = toServant . httpApi  }
+
+httpApi :: Maybe IP4 -> HttpApi (AsServerT KatipController)
+httpApi _ =
+  HttpApi 
+  { _httpApiFile = toServant file
+  , _httpApiAdmin = (`withBasicAuth` toServant . admin)
+  , _httpApiAuth = toServant auth
+  , _httpApiFront = toServant frontend
+  , _httpApiUser =
+      \case
+        Authenticated u -> toServant $ user u
+        _ -> 
+          const $ 
+          throwError $ 
+          wwwAuthenticatedErr 
+          "only for authorized personnel" 
+  }
+
+file :: FileApi (AsServerT KatipController)
+file =
+  FileApi
+  { _fileApiUpload = \bucket files ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["file", "upload"])
+    (File.Upload.controller bucket files)
+  , _fileApiPatch = \fid file ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["file", "patch"])
+    (File.Patch.controller fid file)
+  , _fileApiDelete =
+      flip logExceptionM ErrorS
+    . katipAddNamespace
+     (Namespace ["file", "delete"])
+    . File.Delete.controller
+  , _fileApiDownload = \option fid w h ->
+     flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["file", "download"])
+     (File.Download.controller option fid w h) }
+
+admin :: User -> AdminApi (AsServerT KatipController)
+admin _ = 
+  AdminApi {
+    _adminApiTest = do
+      ct <- currentTime
+      runTelegram $location $ show [1, 2]
+      runTelegram $location (show ct) $> Ok ct }
+
+auth :: AuthApi (AsServerT KatipController) 
+auth = 
+  AuthApi 
+  { _authApiAuthWithBasic = \_ -> 
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+    (Namespace ["auth", "login", "basic"]) 
+    (return $ Ok $ BasicAuth "ZmNsYXcwMDdAZ21haWwuY29tOnRlc3Q=") }
+
+frontend :: FrontendApi (AsServerT KatipController)
+frontend = 
+  FrontendApi 
+  { _frontendApiLog = \req -> 
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["frontend", "log"]) 
+    (Frontend.Log.controller req) }
+
+user :: User -> UserApi (AsServerT KatipController) 
+user _ =
+  UserApi 
+  { _userApiGetProfile = \_ ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "profile", "get"])
+    undefined }

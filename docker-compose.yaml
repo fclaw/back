@@ -1,0 +1,91 @@
+version: '3.7'
+services:
+
+  db:
+    image: postgres:latest
+    container_name: "scaffold-db"
+    restart: 'always'
+    ports:
+      - '5432:5432'
+    environment:
+      - DB_USER=$DBUSER
+      - DB_PASSWORD=3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
+      - DB_DATABASE=$DATABASE
+      - POSTGRES_PASSWORD=264c0424e4bd463a7d02b9db6896143e1a96cd1c52511119f839d2bc9c934241
+      - POSTGRES_USER=postgres
+    volumes:
+      - ${PWD}/deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
+      - pg_db:/var/lib/postgresql/data
+    networks:
+      scaffold:
+         ipv4_address: 192.168.20.4
+
+
+  server:
+    image: server:latest
+    container_name: "scaffold-server"
+    restart: 'always'
+    links:
+      - db
+      - storage
+    depends_on:
+      - db
+      - storage
+    ports:
+      - "12000:12000"
+    networks:
+      scaffold:
+        ipv4_address: 192.168.20.3
+
+  storage:
+    image: minio/minio:latest
+    container_name: "scaffold-file-storage"
+    restart: 'always'
+    ports:
+      - '9000:9000'
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server /data
+    networks:
+      scaffold:
+        ipv4_address: 192.168.20.2
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: "scaffold-pgadmin"
+    restart: 'always'
+    ports:
+      - '82:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@domain.com
+      PGADMIN_DEFAULT_PASSWORD: SuperSecret
+      PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 10
+    networks:
+      - scaffold
+
+  migration:
+    image: liquibase/liquibase:latest
+    container_name: "scaffold-migration"
+    restart: 'always'
+    volumes:
+      - ${PWD}/migration/:/liquibase/changelog
+      - ${PWD}/migration/liquibase_policy_init.sh:/liquibase/liquibase_policy_init.sh
+    command: ['./liquibase_policy_init.sh' ]
+    networks:
+      - scaffold
+
+
+volumes:
+  pg_db: {}
+  minio_data: {}
+
+networks:
+  scaffold:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 192.168.20.0/25
+# vim: et:sw=2

@@ -1,0 +1,34 @@
+FROM ubuntu:latest
+
+RUN apt update --fix-missing && \
+    apt install -y curl && \
+    apt install -y tar && \
+    apt install -y xz-utils && \  
+    apt install -y libgmp3-dev && \
+    curl -sSL https://get.haskellstack.org/ | sh
+
+RUN addgroup --system nixbld && \
+    adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
+    adduser nix nixbld && \
+    mkdir -m 0755 /nix && chown nix /nix && \
+    mkdir -p /etc/nix && echo 'sandbox = false' > /etc/nix/nix.conf
+
+CMD /bin/bash -l
+USER nix
+ENV USER nix
+WORKDIR /home/nix
+
+COPY --chown=nix:nix . .
+
+RUN touch .bash_profile && deploy/nix.sh 
+
+ENV PATH="/home/nix/bin:${PATH}"
+
+RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
+    cd ImageMagick && git checkout 7.0.10-3 && \
+    ./configure --prefix=/home/nix && make && make install
+
+RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
+      stack install --fast -j12 --test
+
+ENTRYPOINT ["/home/nix/deploy/init.sh"]

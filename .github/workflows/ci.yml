@@ -1,0 +1,14 @@
+name: Docker Image for Backend
+
+on: 
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: build a docker image for server
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
