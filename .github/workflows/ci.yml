@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: arm64v8/ubuntu-latest
     name: build a docker image for server
     steps:
       - uses: actions/checkout@v2
