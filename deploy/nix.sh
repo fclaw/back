@@ -38,7 +38,7 @@ if [ "$(uname -s)" != "Darwin" ]; then
     require_util xz "unpack the binary tarball"
 fi
 
-echo "downloading Nix 2.3.3 binary tarball for $system from '$url' to '$tmpDir'..."
+echo "downloading Nix 2.13.3 binary tarball for $system from '$url' to '$tmpDir'..."
 curl -L "$url" -o "$tarball" || oops "failed to download '$url'"
 
 if command -v sha256sum > /dev/null 2>&1; then
