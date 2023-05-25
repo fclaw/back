@@ -4,6 +4,10 @@ on:
   push:
     branches: [ master ]
 
+env:
+  REGISTRY: ghcr.io
+  DOCKER_FILE: ${{ env.DOCKER_USER }}
+
 jobs:
 
   print:
@@ -15,7 +19,7 @@ jobs:
          run: |
            echo "secret docker user: $secrets.DOCKER_USER }}"
            echo "secret docker pass: ${{ secrets.DOCKER_PASSWORD }}"
-           echo "docker file: ${{ env.DOCKER_FILE }}"
+           echo "docker file: DOCKER_FILE}"
 
   build:
     name: build
