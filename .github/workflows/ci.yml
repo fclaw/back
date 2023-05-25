@@ -13,9 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: |
-           echo "$DOCKER_FILE"
-           docker build . --file $ENV_VARIABLE --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        run: docker build . --file ${DOCKER_FILE} --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
 
   push:
     name: push to Docker
