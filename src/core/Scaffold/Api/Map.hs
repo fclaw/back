@@ -5,18 +5,20 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Scaffold.Api.Data
+module Scaffold.Api.Map
        ( HttpApi (..)
        , module File
        , module Protected
        , module User
        , module Front
+       , module Public
        ) where
 
 import Scaffold.Api.File as File
 import Scaffold.Api.Protected as Protected
 import Scaffold.Api.User as User
 import Scaffold.Api.Frontend as Front
+import Scaffold.Api.Public as Public
 import Scaffold.Auth
 
 import Servant.API.Generic
@@ -53,4 +55,9 @@ data HttpApi route =
        :> "user"
        :> SA.Auth '[SA.BasicAuth, SA.JWT] User
        :> ToServant UserApi AsApi  
+     , _httpApiPublic
+       :: route
+       :- Tags "Public"
+       :> "public"
+       :> ToServant PublicApi AsApi  
      } deriving stock Generic

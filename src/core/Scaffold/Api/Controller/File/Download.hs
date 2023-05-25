@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE InstanceSigs #-}
 
-module Scaffold.Controller.File.Download (controller, Option) where
+module Scaffold.Api.Controller.File.Download (controller, Option) where
 
 import Scaffold.Transport.Id
 import Scaffold.Statement.File as File

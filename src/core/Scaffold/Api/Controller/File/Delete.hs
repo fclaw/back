@@ -3,7 +3,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Scaffold.Controller.File.Delete (controller) where
+module Scaffold.Api.Controller.File.Delete (controller) where
 
 import Scaffold.Transport.Response
 import Scaffold.Transport.Id

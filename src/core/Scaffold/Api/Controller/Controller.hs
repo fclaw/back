@@ -9,15 +9,15 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Scaffold.Controller.Controller (controller) where
+module Scaffold.Api.Controller.Controller (controller) where
 
 import Scaffold.Api
 -- controllers
-import qualified Scaffold.Controller.File.Upload as File.Upload
-import qualified Scaffold.Controller.File.Download as File.Download
-import qualified Scaffold.Controller.File.Delete as File.Delete
-import qualified Scaffold.Controller.File.Patch as File.Patch
-import qualified Scaffold.Controller.Frontend.Log as Frontend.Log
+import qualified Scaffold.Api.Controller.File.Upload as File.Upload
+import qualified Scaffold.Api.Controller.File.Download as File.Download
+import qualified Scaffold.Api.Controller.File.Delete as File.Delete
+import qualified Scaffold.Api.Controller.File.Patch as File.Patch
+import qualified Scaffold.Api.Controller.Frontend.Log as Frontend.Log
 import Servant.RawM.Server ()
 import Scaffold.Auth
 import Scaffold.Transport.Response
@@ -33,6 +33,12 @@ import BuildInfo
 import Data.Functor
 import Servant.Auth.Server (AuthResult (..), wwwAuthenticatedErr)
 import Control.Monad.Except
+import Network.WebSockets.Connection (PendingConnection, acceptRequest, pingThread, sendTextData)
+import System.Info
+import Data.Time.Clock.System (getSystemTime, systemSeconds)
+import Data.Text (pack)
+import Data.Version (showVersion)
+
 
 controller :: Api (AsServerT KatipController)
 controller = Api { _apiHttp = toServant . httpApi  }
@@ -52,6 +58,7 @@ httpApi _ =
           throwError $ 
           wwwAuthenticatedErr 
           "only for authorized personnel" 
+  , _httpApiPublic = toServant public        
   }
 
 file :: FileApi (AsServerT KatipController)
@@ -112,3 +119,19 @@ user _ =
     katipAddNamespace
     (Namespace ["user", "profile", "get"])
     undefined }
+
+public :: PublicApi (AsServerT KatipController)
+public = 
+  PublicApi 
+  { _publicApiGetServerInfo = 
+     \(conn :: PendingConnection) ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["public", "server", "info"])
+    (liftIO $ do
+      c <- acceptRequest conn
+      pingThread c 10 $ do 
+        let serverInfo = "os: " <> os <> ", arch:" <> arch <> ", Haskell compiler: " <> showVersion compilerVersion
+        st <- getSystemTime
+        let msg = serverInfo <> ", server time: "  <> show (systemSeconds st) 
+        sendTextData c $ pack msg  ) }

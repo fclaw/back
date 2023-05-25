@@ -191,6 +191,8 @@ library:
     - SafeSemaphore
     - threads
     - http-api-data
+    - servant-websockets
+    - websockets
 
   source-dirs:
     - src/core

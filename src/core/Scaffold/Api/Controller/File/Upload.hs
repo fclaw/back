@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 
-module Scaffold.Controller.File.Upload (controller) where
+module Scaffold.Api.Controller.File.Upload (controller) where
 
 import Scaffold.Transport.Response
 import Scaffold.Statement.File as File

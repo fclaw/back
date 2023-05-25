@@ -14,7 +14,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Scaffold.Controller.Frontend.Log (controller, Request) where
+module Scaffold.Api.Controller.Frontend.Log (controller, Request) where
 
 import Scaffold.Transport.Response
 import Scaffold.Config (FrontendBuild (..))

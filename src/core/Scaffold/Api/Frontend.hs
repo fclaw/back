@@ -8,7 +8,7 @@
 
 module Scaffold.Api.Frontend (FrontendApi (..)) where
 
-import Scaffold.Controller.Frontend.Log (Request)
+import Scaffold.Api.Controller.Frontend.Log (Request)
 
 import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
 import Servant.API.Extended ( Put, type (:>), JSON, ReqBody )

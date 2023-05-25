@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds #-}
 
-module Scaffold.Controller.File.Patch (controller) where
+module Scaffold.Api.Controller.File.Patch (controller) where
 
 import Scaffold.Transport.Response
 import Scaffold.Transport.Id

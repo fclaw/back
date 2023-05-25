@@ -10,7 +10,7 @@ module Scaffold.Api.File (FileApi (..)) where
 
 import Scaffold.Transport.Id
 import Scaffold.Transport.Response
-import Scaffold.Controller.File.Download (Option)
+import Scaffold.Api.Controller.File.Download (Option)
 
 import Servant.API.Generic
 import Servant.API.Extended

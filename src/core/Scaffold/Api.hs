@@ -17,11 +17,12 @@ module Scaffold.Api
        , AuthApi (..)
        , FrontendApi (..)
        , UserApi (..)
+       , PublicApi (..)
        , api
        , swaggerHttpApi
        ) where
 
-import Scaffold.Api.Data
+import Scaffold.Api.Map
 
 import BuildInfo
 import Servant.API

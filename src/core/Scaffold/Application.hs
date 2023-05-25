@@ -22,7 +22,7 @@
 module Scaffold.Application (Cfg (..), AppMonad (..), run) where
 
 import Scaffold.Api
-import qualified Scaffold.Controller.Controller as Controller
+import qualified Scaffold.Api.Controller.Controller as Controller
 import qualified Scaffold.Config as Cfg
 import qualified Scaffold.Transport.Response as Response
 import Scaffold.Transport.Error
