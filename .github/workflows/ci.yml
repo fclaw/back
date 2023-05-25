@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        run: docker build . --file ${{ env.DOCKER_FILE }} --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
 
   push:
     name: push to Docker
@@ -27,8 +27,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          username: ${{ docker.USER }}
-          password: ${{ docker.PASSWORD }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
