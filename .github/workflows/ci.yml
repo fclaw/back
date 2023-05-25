@@ -4,6 +4,10 @@ on:
   push:
     branches: [ master ]
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
+
 jobs:
   build:
     name: build
