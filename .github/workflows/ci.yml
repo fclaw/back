@@ -4,31 +4,15 @@ on:
   push:
     branches: [ master ]
 
-env:
-  REGISTRY: ghcr.io
-  DOCKER_FILE: ${{ env.DOCKER_USER }}
-
 jobs:
-
-  print:
-     name: print variables
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v2
-       - name: print
-         run: |
-           echo "secret docker user: $secrets.DOCKER_USER }}"
-           echo "secret docker pass: ${{ secrets.DOCKER_PASSWORD }}"
-           echo "docker file: DOCKER_FILE}"
 
   build:
     name: build
-    needs: print
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}:${GITHUB_SHA}"
 
   push:
     name: push to Docker
