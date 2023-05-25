@@ -4,16 +4,20 @@ on:
   push:
     branches: [ master ]
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
+
 jobs:
   build:
     name: build
     runs-on: ubuntu-latest
-    env:
-      DOCKER_FILE: ${{ vars.DOCKER_FILE }}
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: docker build . --file $DOCKER_FILE --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        run: |
+           echo "$DOCKER_FILE"
+           docker build . --file $DOCKER_FILE --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
 
   push:
     name: push to Docker
