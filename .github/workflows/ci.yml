@@ -13,12 +13,13 @@ jobs:
        - uses: actions/checkout@v2
        - name: print
          run: |
-           echo "secret docker user: ${{ secrets.DOCKER_USER }}"
-           echo "secret docker pass: ${{ secrets.DOCKER_PASSWORD }}
-           echo "docker file:" ${{ env.DOCKER_FILE }}
+           echo "secret docker user: $secrets.DOCKER_USER }}"
+           echo "secret docker pass: ${{ secrets.DOCKER_PASSWORD }}"
+           echo "docker file: ${{ env.DOCKER_FILE }}"
 
   build:
     name: build
+    needs: print
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
