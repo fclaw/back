@@ -8,12 +8,11 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
-    env: 
-      ENV_VARIABLE: test
+    id: build
     steps:
       - uses: actions/checkout@v2
       - name: Build the Docker image
-        run: docker build . --file ${DOCKER_FILE} --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
 
   push:
     name: push to Docker
