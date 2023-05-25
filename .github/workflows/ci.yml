@@ -18,6 +18,8 @@ jobs:
         run: |
            echo "$DOCKER_FILE"
            docker build . --file $DOCKER_FILE --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+        env:
+          DOCKER_FILE: ${{ vars.DOCKER_FILE }}    
 
   push:
     name: push to Docker
