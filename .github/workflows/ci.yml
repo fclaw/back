@@ -13,7 +13,7 @@ jobs:
       - name: Build the Docker image
         run: |
            echo "$DOCKER_FILE"
-           docker build . --file ${{ secrets.DOCKER_USER }} --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
+           docker build . --file ${{ env.DOCKER_USER }} --tag "${GITHUB_REF#refs/heads/}.${GITHUB_SHA}"
 
   push:
     name: push to Docker
