@@ -23,6 +23,7 @@ import Scaffold.Auth
 import Scaffold.Transport.Response
 import Scaffold.Transport.Model.User (BasicAuth (..))
 
+import Data.Aeson
 import Katip
 import KatipController
 import Servant.Server.Generic
@@ -33,10 +34,10 @@ import BuildInfo
 import Data.Functor
 import Servant.Auth.Server (AuthResult (..), wwwAuthenticatedErr)
 import Control.Monad.Except
-import Network.WebSockets.Connection (PendingConnection, acceptRequest, pingThread, sendTextData)
+import qualified Network.WebSockets.Connection as WS
+import qualified Network.WebSockets as WS
 import System.Info
 import Data.Time.Clock.System (getSystemTime, systemSeconds)
-import Data.Text (pack)
 import Data.Version (showVersion)
 
 
@@ -124,14 +125,15 @@ public :: PublicApi (AsServerT KatipController)
 public = 
   PublicApi 
   { _publicApiGetServerInfo = 
-     \(conn :: PendingConnection) ->
+     \(conn :: WS.PendingConnection) ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["public", "server", "info"])
     (liftIO $ do
-      c <- acceptRequest conn
-      pingThread c 10 $ do 
+      c <- WS.acceptRequest conn
+      WS.pingThread c 1 $ do 
         let serverInfo = "os: " <> os <> ", arch:" <> arch <> ", Haskell compiler: " <> showVersion compilerVersion
         st <- getSystemTime
-        let msg = serverInfo <> ", server time: "  <> show (systemSeconds st) 
-        sendTextData c $ pack msg  ) }
+        let msg = serverInfo <> ", server time: "  <> show (systemSeconds st)
+        let resp = Ok [msg]
+        WS.sendDataMessage c (WS.Text (Data.Aeson.encode resp) Nothing) ) }
