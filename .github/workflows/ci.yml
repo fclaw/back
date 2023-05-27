@@ -6,17 +6,17 @@ on:
 
 jobs:
 
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}:${GITHUB_SHA}"
+  # build:
+  #   name: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Build the Docker image
+  #       run: docker build . --file Dockerfile_server --tag "${GITHUB_REF#refs/heads/}:${GITHUB_SHA}"
 
   push:
     name: push to Docker
-    needs: build
+    # needs: build
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -28,8 +28,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: sclaw
+          password: DOBRO1981mag
       
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -43,7 +43,7 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: |
-            my-docker-hub-namespace/my-docker-hub-repository
+            fclaw/back
             ghcr.io/${{ github.repository }}
       
       - name: Build and push Docker image
