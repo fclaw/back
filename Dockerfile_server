@@ -35,4 +35,4 @@ COPY --from=build /home/nix/deploy /server/deploy
 COPY --from=build /home/nix/migration /server/migration
 COPY --from=build /home/nix/scripts /server/scripts
 
-ENTRYPOINT ["$HOME/deploy/init.sh"]
+ENTRYPOINT ["server/deploy/init.sh"]
