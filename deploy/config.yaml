@@ -41,7 +41,7 @@ configTelegram:
   telegramEnv: dev
 
 configCors:
-  corsOrigins: [http://127.0.0.1:8080]
+  corsOrigins: [http://127.0.0.1:8080, http://127.0.0.1:3001]
 
 configSmtp:
   smtpServer: smtp.gmail.com

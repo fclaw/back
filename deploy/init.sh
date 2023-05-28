@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/bash
 
 export ekg_datadir=server/deploy/ekg
 cd server

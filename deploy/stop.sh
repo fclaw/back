@@ -1,3 +1,3 @@
-#!/bin/sh -eu
+#!/bin/bash
 
 docker-compose stop
