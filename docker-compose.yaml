@@ -8,9 +8,9 @@ services:
     ports:
       - '5432:5432'
     environment:
-      - DB_USER=$DBUSER
+      - DB_USER=${DBUSER}
       - DB_PASSWORD=3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
-      - DB_DATABASE=$DATABASE
+      - DB_DATABASE=${DATABASE}
       - POSTGRES_PASSWORD=264c0424e4bd463a7d02b9db6896143e1a96cd1c52511119f839d2bc9c934241
       - POSTGRES_USER=postgres
     volumes:
@@ -22,7 +22,7 @@ services:
 
 
   server:
-    image: server:latest
+    image: sclaw/back:${TAG}
     container_name: "scaffold-server"
     restart: 'always'
     links:
@@ -57,6 +57,8 @@ services:
     image: dpage/pgadmin4:latest
     container_name: "scaffold-pgadmin"
     restart: 'always'
+    depends_on:
+      - db
     ports:
       - '82:80'
     environment:
@@ -69,7 +71,8 @@ services:
   migration:
     image: liquibase/liquibase:latest
     container_name: "scaffold-migration"
-    restart: 'always'
+    depends_on:
+      - db
     volumes:
       - ${PWD}/migration/:/liquibase/changelog
       - ${PWD}/migration/liquibase_policy_init.sh:/liquibase/liquibase_policy_init.sh

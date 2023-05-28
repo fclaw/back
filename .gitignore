@@ -1,11 +1,8 @@
 .stack-work/
-edgeNode-server.cabal
 *~
 test/*.html
 log/
 .vscode/
-backend/proto
-frontend/proto
 dist/
 stack.yaml.lock
 /dist*

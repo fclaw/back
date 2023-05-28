@@ -85,7 +85,6 @@ data Cmd w =
      , swaggerPort :: w ::: Maybe Int <?> "swagger port"
      , serverPort :: w ::: Maybe Int <?> "server port"
      , cfgAdminStoragePath :: w ::: FilePath <?> "admin storage"
-     , migration :: w ::: FilePath <?> "migration path"
      , printCfg :: w ::: Maybe PrintCfg  <?> "whether config be printed"
      } deriving stock Generic
 
