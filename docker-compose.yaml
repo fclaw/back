@@ -24,7 +24,8 @@ services:
   server:
     image: sclaw/back:${TAG}
     container_name: "scaffold-server"
-    restart: 'always'
+    security_opt:
+      - seccomp:unconfined
     links:
       - db
       - storage
