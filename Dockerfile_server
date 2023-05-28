@@ -38,4 +38,4 @@ COPY --from=build /home/nix/scripts /server/scripts
 RUN echo "the content of /server"
 RUN ls -la /server
 
-ENTRYPOINT ["server/deploy/init.sh"]
+ENTRYPOINT ["/server/deploy/init.sh"]
