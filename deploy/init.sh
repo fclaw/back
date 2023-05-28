@@ -1,7 +1,7 @@
 #!/bin/sh -eu
 
-export ekg_datadir=home/nix/deploy/ekg
-cd /home/nix/
+export ekg_datadir=server/deploy/ekg
+cd server
 
 sleep 2
 echo 'launch server..'

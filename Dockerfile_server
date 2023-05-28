@@ -28,9 +28,11 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
 
 FROM --platform=amd64 ubuntu:latest
 
-COPY --from=build /home/nix/bin /bin
-COPY --from=build /home/nix/deploy /deploy
-COPY --from=build /home/nix/migration /migration
-COPY --from=build /home/nix/scripts /scripts
+WORKDIR server
 
-ENTRYPOINT ["/home/nix/deploy/init.sh"]
+COPY --from=build /home/nix/bin /server/bin
+COPY --from=build /home/nix/deploy /server/deploy
+COPY --from=build /home/nix/migration /server/migration
+COPY --from=build /home/nix/scripts /server/scripts
+
+ENTRYPOINT ["$HOME/deploy/init.sh"]
