@@ -24,17 +24,19 @@ services:
   server:
     image: sclaw/back:${TAG}
     container_name: "scaffold-server"
+    restart: 'always'
     links:
       - db
       - storage
     depends_on:
       - db
       - storage
+      - migration
     ports:
       - "12000:12000"
     networks:
-      scaffold:
-        ipv4_address: 192.168.20.3
+      - scaffold
+        # ipv4_address: 192.168.20.3
 
   storage:
     image: minio/minio:latest
@@ -50,28 +52,14 @@ services:
     command: server /data
     networks:
       scaffold:
-        ipv4_address: 192.168.20.2
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: "scaffold-pgadmin"
-    restart: 'always'
-    depends_on:
-      - db
-    ports:
-      - '82:80'
-    environment:
-      PGADMIN_DEFAULT_EMAIL: user@domain.com
-      PGADMIN_DEFAULT_PASSWORD: SuperSecret
-      PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 10
-    networks:
-      - scaffold
+         ipv4_address: 192.168.20.5
 
   migration:
     image: liquibase/liquibase:latest
     container_name: "scaffold-migration"
     depends_on:
       - db
+      - storage
     volumes:
       - ${PWD}/migration/:/liquibase/changelog
       - ${PWD}/migration/liquibase_policy_init.sh:/liquibase/liquibase_policy_init.sh

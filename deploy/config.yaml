@@ -1,5 +1,5 @@
 configDb:
-  dbHost: 127.0.0.1
+  dbHost: 192.168.20.4
   dbPort: 5432
   dbUser: sonny
   dbPass: 3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
@@ -31,7 +31,7 @@ configMinio:
   minioAccessKey: AKIAIOSFODNN7EXAMPLE
   minioSecretKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
   minioBucketPrefix: scaffold
-  minioHost: http://127.0.0.2
+  minioHost: http://192.168.20.5
   minioPort: "9000"
 
 configTelegram:
