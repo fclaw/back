@@ -24,3 +24,5 @@ ENV PATH="/home/nix/bin:${PATH}"
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
        nix-shell --command "stack install --fast -j12 --test"
+
+ENTRYPOINT ["/home/nix/deploy/init.sh"]

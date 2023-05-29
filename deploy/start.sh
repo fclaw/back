@@ -15,7 +15,7 @@ EOT
 
 if [ $# -ge 1 ] && [ -n "$2" ]
 then 
-  composer=$1
+  composer=$2
 
   if [ $composer == "yes" ]
   then
