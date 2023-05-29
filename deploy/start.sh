@@ -19,7 +19,7 @@ then
 
   if [ $composer == "yes" ]
   then
-     exec docker-compose up
+     exec docker-compose up server
   else
      echo "arg must be yes" 
   fi
