@@ -11,7 +11,10 @@ if [ $# -ge 1 ] && [ -n "$1" ]
 then 
   composer=$1
 
-  if [ $composer == "yes" ] ; then
-   exec docker-compose up
+  if [ $composer == "yes" ]
+  then
+     exec docker-compose up
+  else
+     echo "arg must be yes" 
   fi
 fi

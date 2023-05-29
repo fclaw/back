@@ -34,6 +34,7 @@ COPY --from=build /home/nix/bin /server/bin
 COPY --from=build /home/nix/deploy /server/deploy
 COPY --from=build /home/nix/migration /server/migration
 COPY --from=build /home/nix/scripts /server/scripts
-COPY --from=build /home/nix/shell.nix /home/nix/stack.yaml  home/nix/README.md  /home/nix/Setup.hs  /home/nix/LICENSE /home/nix/nix /server/
+COPY --from=build /home/nix/shell.nix /home/nix/stack.yaml  home/nix/README.md  /home/nix/Setup.hs  /home/nix/LICENSE /server/
+COPY --from=build /home/nix/nix /server/
 
 ENTRYPOINT ["/server/deploy/init.sh"]
