@@ -2,6 +2,6 @@ FROM --platform=amd64 nixos/nix:latest
 
 WORKDIR /server
 
-RUN nix --update && nix-shell --command "stack install --fast -j12 --test"
+RUN nix-channel --update && nix-shell --command "stack install --fast -j12 --test"
 
 ENTRYPOINT ["/server/deploy/init.sh"]
