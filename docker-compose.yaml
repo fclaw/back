@@ -25,7 +25,7 @@ services:
     image: sclaw/back:${TAG}
     container_name: "scaffold-server"
     security_opt:
-      - seccomp:unconfined
+      - seccomp:docker_seccomp.json
     links:
       - db
       - storage

@@ -26,7 +26,7 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
        nix-shell --command "stack install --fast -j12 --test"
 
 
-FROM nixos/nix:latest-amd64 as run
+FROM --platform=amd64 nixos/nix:latest
 
 WORKDIR /server
 
@@ -34,11 +34,6 @@ COPY --from=build /home/nix/bin /server/bin
 COPY --from=build /home/nix/deploy /server/deploy
 COPY --from=build /home/nix/migration /server/migration
 COPY --from=build /home/nix/scripts /server/scripts
-COPY --from=build /home/nix/shell.nix /server
-COPY --from=build /home/nix/stack.yaml /server
-COPY --from=build /home/nix/README.md /server
-COPY --from=build /home/nix/Setup.hs /server
-COPY --from=build /home/nix/LICENSE /server
-COPY --from=build /home/nix/nix /server
+COPY --from=build /home/nix/shell.nix /home/nix/stack.yaml  home/nix/README.md  /home/nix/Setup.hs  /home/nix/LICENSE /home/nix/nix /server/
 
 ENTRYPOINT ["/server/deploy/init.sh"]
