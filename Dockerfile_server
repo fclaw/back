@@ -69,8 +69,6 @@ RUN mkdir -p /etc/nix && echo sandbox = false > /etc/nix/nix.conf
 
 FROM nix-builder as server-build
 
-WORKDIR /server
-
 WORKDIR /build
 
 COPY . .
