@@ -25,7 +25,6 @@ RUN nix-env -iA \
   nixpkgs.gzip \
   nixpkgs.iana-etc \
   nixpkgs.xz \
-  nixpkgs.postgresql \
   && true
 
 # Remove old things
@@ -74,7 +73,10 @@ WORKDIR /build
 
 COPY . .
 
-RUN nix-shell --command "stack install --fast -j12 --test"
+RUN nix-channel --add \
+    https://nixos.org/channels/nixos-23.05 nixpkgs && \
+    nix-channel --update && \
+    nix-shell --command "stack install --fast -j12 --test"
 
 FROM nix-builder as main
 
