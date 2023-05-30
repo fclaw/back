@@ -71,9 +71,9 @@ FROM nix-builder as server-build
 
 WORKDIR /server
 
-COPY . .
-
 WORKDIR /build
+
+COPY . .
 
 RUN nix-shell --command "stack install --fast -j12 --test"
 
