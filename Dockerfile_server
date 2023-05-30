@@ -12,7 +12,7 @@ ENV PATH=/nix/var/nix/profiles/default/bin:/usr/bin:/bin
 
 # Give us a basic environment
 RUN nix-channel --add \
-  https://nixos.org/channels/nixpkgs-unstable nixpkgs && \
+  https://nixos.org/channels/nixos-23.05 nixpkgs && \
   nix-channel --update
 
 
@@ -25,6 +25,7 @@ RUN nix-env -iA \
   nixpkgs.gzip \
   nixpkgs.iana-etc \
   nixpkgs.xz \
+  nixpkgs.postgresql \
   && true
 
 # Remove old things
