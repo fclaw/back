@@ -31,7 +31,7 @@ COPY --chown=nix:nix . .
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix --verbose --command "stack install --fast -j12 --test"
 
-FROM nix-builder as main
+FROM base as main
 
 WORKDIR /server
 
