@@ -20,7 +20,6 @@ services:
       scaffold:
          ipv4_address: 192.168.20.4
 
-
   server:
     image: sclaw/back:${TAG}
     container_name: "scaffold-server"
@@ -36,7 +35,6 @@ services:
       - "12000:12000"
     networks:
       - scaffold
-        # ipv4_address: 192.168.20.3
 
   storage:
     image: minio/minio:latest
@@ -66,7 +64,6 @@ services:
     command: ['./liquibase_policy_init.sh' ]
     networks:
       - scaffold
-
 
 volumes:
   pg_db: {}
