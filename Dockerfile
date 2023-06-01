@@ -39,6 +39,7 @@ COPY --from=server-build --chown=nix:nix /build/bin /server/bin
 COPY --from=server-build --chown=nix:nix /build/deploy /server/deploy
 COPY --from=server-build --chown=nix:nix /build/migration /server/migration
 COPY --from=server-build --chown=nix:nix /build/scripts /server/scripts
-COPY --from=server-build --chown=nix:nix /build/package.yaml /build/tls /build/nix/deploy.nix /build/stack.yaml /build/README.md  /build/Setup.hs /build/LICENSE  /server/
+COPY --from=server-build --chown=nix:nix /build/tls /server/tls
+COPY --from=server-build --chown=nix:nix /build/package.yaml /build/nix/deploy.nix /build/stack.yaml /build/README.md  /build/Setup.hs /build/LICENSE  /server/
 
 ENTRYPOINT ["/server/deploy/init.sh"]
