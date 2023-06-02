@@ -193,6 +193,7 @@ library:
     - http-api-data
     - servant-websockets
     - websockets
+    - aeson-pretty
 
   source-dirs:
     - src/core

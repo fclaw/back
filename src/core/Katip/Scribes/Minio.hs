@@ -15,6 +15,8 @@ import Control.Monad.IO.Class
 import Control.Monad
 import Control.Lens
 import Data.Text (Text) 
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Control.Lens.Iso.Extended
 
 mkMinioScribe :: MinioConn -> Text -> PermitFunc -> Verbosity -> IO Scribe
 mkMinioScribe conn bucket permitF verb = do 
@@ -26,7 +28,7 @@ mkMinioScribe conn bucket permitF verb = do
                let hash = mkHash (item^.itemTime)
                tmp <- getTemporaryDirectory
                let path = tmp </> unpack hash
-               writeFile path $ show $ itemJson verb item
+               writeFile path $ encodePretty (itemJson verb item)^.from textbsl.from stext
                return (hash, path)
             exists <- bucketExists bucket
             unless exists $ makeBucket bucket Nothing   
