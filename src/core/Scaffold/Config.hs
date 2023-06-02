@@ -43,6 +43,7 @@ module Scaffold.Config
        , service
        , accessKey
        , secretKey
+       , logBucket
        , minio
        , bucketPrefix
        , swagger
@@ -117,6 +118,7 @@ data Minio =
      , minioBucketPrefix :: !T.Text
      , minioHost :: !String
      , minioPort :: !String
+     , minioLogBucket :: !String
      } deriving Show
 
 data Telegram =

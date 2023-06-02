@@ -33,6 +33,7 @@ configMinio:
   minioBucketPrefix: scaffold
   minioHost: http://192.168.20.5
   minioPort: "9000"
+  minioLogBucket: "log"
 
 configTelegram:
   telegramBot: bot2096396660:AAFgPJkIGmBOgbWuzvyejPJJo7-HpFgr2CY

@@ -18,6 +18,7 @@ import qualified Scaffold.Application as App
 import Scaffold.Config
 import Scaffold.Auth (User (User))
 
+import Katip.Scribes.Minio (mkMinioScribe)
 import KatipController
 import BuildInfo (gitCommit)
 import Pretty
@@ -138,6 +139,14 @@ main = do
   term <- hGetTerm stdout
   hSetBuffering stdout NoBuffering
 
+  let mkRawConn x = 
+        HasqlConn.settings 
+        (x^.host.stext.textbs) 
+        (x^.port.to fromIntegral) 
+        (x^.Scaffold.Config.user.stext.textbs) 
+        (x^.pass.stext.textbs) 
+        (x^.database.stext.textbs)
+
   hasqlpool <- Pool.createPool
     (HasqlConn.acquire (mkRawConn (cfg^.db)) >>=
       either (throwIO . ErrorCall . maybe "hasql connection error" (^.from textbs.from stext)) pure)
@@ -166,9 +175,6 @@ main = do
           (cfg^.katip.verbosity.from stringify)
   let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
   init_env <- initLogEnv mkNm (cfg^.katip.Scaffold.Config.env.isoEnv.stext.coerced)
-  let env = do
-        env' <- registerScribe "stdout" std defaultScribeSettings init_env
-        registerScribe "file" file defaultScribeSettings env'
 
   createDirectoryIfMissing True cfgAdminStoragePath
   admin_storage <- withFile (cfgAdminStoragePath <> "/" <> "passwords") ReadMode $ \h -> do
@@ -201,17 +207,15 @@ main = do
 
   telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram)
 
+  minioScribe <- mkMinioScribe minioEnv (cfg^.Scaffold.Config.minio.logBucket.stext) (permitItem (cfg^.katip.severity.from stringify)) (cfg^.katip.verbosity.from stringify)
+
+  let env = do
+        env' <- registerScribe "stdout" std defaultScribeSettings init_env
+        env'' <- registerScribe "file" file defaultScribeSettings env'
+        registerScribe "minio" minioScribe defaultScribeSettings env''
+
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
   let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (cfg^.Scaffold.Config.frontendBuild)
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp
-
-mkRawConn :: Db -> HasqlConn.Settings
-mkRawConn x =
-  HasqlConn.settings
-  (x^.host.stext.textbs)
-  (x^.port.to fromIntegral)
-  (x^.Scaffold.Config.user.stext.textbs)
-  (x^.pass.stext.textbs)
-  (x^.database.stext.textbs)

@@ -23,7 +23,6 @@ services:
   server:
     image: sclaw/back:${TAG}
     container_name: "scaffold-server"
-    restart: 'always'
     links:
       - db
       - storage
@@ -41,13 +40,14 @@ services:
     container_name: "scaffold-file-storage"
     restart: 'always'
     ports:
+      - '9001:9001'
       - '9000:9000'
     volumes:
       - minio_data:/data
     environment:
-      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
-      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    command: server /data
+      MINIO_ROOT_USER: AKIAIOSFODNN7EXAMPLE
+      MINIO_ROOT_PASSWORD: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server --address ":9000" --console-address ":9001" /data
     networks:
       scaffold:
          ipv4_address: 192.168.20.5
