@@ -42,6 +42,7 @@ jobs:
               ${{ vars.DOCKER_IMAGE }}      
           tags: |       
               type=raw,value=${{ github.ref_name }}_${{ github.sha }},enable=${{ github.ref == format('refs/heads/{0}', github.ref_name) }}
+              type=raw,value=latest
                  
       - name: Build and push Docker image
         uses: docker/build-push-action@v4.0.0
@@ -53,47 +54,48 @@ jobs:
             ${{ steps.meta_tag.outputs.tags }}
             ${{ steps.meta_branch.outputs.tags }}
 
-  push_to_aws_registry:
-    name: Push Docker image to Docker AWS
-    environment: AWS
+  push_to_google_registry:
+    name: Push Docker image to Google
+    environment: Google
     runs-on: ubuntu-latest
-    steps:
+    steps:    
       - name: Check out the repo
         uses: actions/checkout@v3.5.2
-      - name: Login to ECR
-        uses: docker/login-action@v2.1.0
+
+      - name: Login to GAR
+        uses: docker/login-action@v2
         with:
-          registry: ${{ vars.REGISTRY }}/sonny
-          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  
+          registry: europe-west3-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GAR_JSON_KEY }}
+
       - name: Docker meta tag
-        id: meta_tag
+        id: meta_tag_1
         uses: docker/metadata-action@v4
         if: ${{ contains(github.ref_type, 'tag') }}
         with:
           images: |
-              ${{ vars.REPO }}      
+            ${{ vars.DOCKER_IMAGE }}   
           tags: |
-              type=raw,value=${{ github.ref_name }}
+            type=raw,value=${{ github.ref_name }}
             
       - name: Docker meta branch
-        id: meta_branch
+        id: meta_branch_1
         uses: docker/metadata-action@v4 
         if: ${{ contains(github.ref_type, 'branch') }}
         with:
           images: |
-              ${{ vars.REPO }}      
+            ${{ vars.DOCKER_IMAGE }}
           tags: |       
-              type=raw,value=${{ github.ref_name }}_${{ github.sha }},enable=${{ github.ref == format('refs/heads/{0}', github.ref_name) }}
-                    
+            type=raw,value=${{ github.ref_name }}_${{ github.sha }},enable=${{ github.ref == format('refs/heads/{0}', github.ref_name) }}
+            type=raw,value=latest
+                
       - name: Build and push Docker image
         uses: docker/build-push-action@v4.0.0
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
-              ${{ vars.REGISTRY }}/${{ steps.meta_branch.outputs.tags }}           
+            ${{ steps.meta_tag_1.outputs.tags }}
+            ${{ steps.meta_branch_1.outputs.tags }}

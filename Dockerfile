@@ -29,9 +29,11 @@ WORKDIR /build
 COPY --chown=nix:nix . .
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      nix-shell ./nix/build.nix --verbose --command "stack install --fast -j12 --test"
+      nix-shell ./nix/build.nix --log-format bar-with-logs --verbose --command "stack install --fast -j12 --test"
 
 FROM base as main
+
+EXPOSE 12000/tcp
 
 WORKDIR /server
 
