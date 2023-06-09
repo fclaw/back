@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/core/Scaffold/Transport/Model/User.hs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1686322272056,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1686322272056,
+            "name": "Commit-0",
+            "content": "{-# LANGUAGE DerivingStrategies #-}\n{-# LANGUAGE DeriveAnyClass #-}\n{-# LANGUAGE GeneralizedNewtypeDeriving #-}\n{-# LANGUAGE DeriveGeneric #-}\n{-# LANGUAGE TypeApplications #-}\n{-# LANGUAGE OverloadedStrings #-}\n{-# LANGUAGE DerivingVia #-}\n{-# LANGUAGE DataKinds #-}\n{-# LANGUAGE ScopedTypeVariables #-}\n{-# LANGUAGE FlexibleInstances #-}\n{-# LANGUAGE MultiParamTypeClasses #-}\n\nmodule Scaffold.Transport.Model.User (BasicAuth (..), BasicCredentials (..)) where\n\nimport Data.Swagger\nimport GHC.Generics\nimport Data.Proxy\nimport Data.Text (Text)\nimport Data.Aeson\nimport Data.Aeson.Generic.DerivingVia\nimport Control.Lens\nimport GHC.Exts\nimport Data.List (stripPrefix)\nimport Data.Typeable\nimport Data.Reflection (Reifies (..))\nimport Data.Maybe\n\n\nnewtype BasicAuth = BasicAuth Text\n  deriving stock Generic\n  deriving anyclass ToParamSchema\n  deriving newtype (ToJSON, FromJSON)\n\ninstance ToSchema BasicAuth where\n  declareNamedSchema _ =\n    pure $\n    NamedSchema (Just \"BasicAuth\") $\n    toSchema (Proxy @Text)\n\ndata BasicCredentials = BasicCredentials { login :: Text, password :: Text } \n  deriving stock Generic\n  deriving (ToJSON, FromJSON)\n    via WithOptions \n        '[ FieldLabelModifier '[ UserDefined (StripConstructor BasicCredentials)]] \n        BasicCredentials\n\ninstance ToSchema BasicCredentials where\n  declareNamedSchema _ = do\n    textSchema <- declareSchemaRef (Proxy @Text)\n    pure $ NamedSchema (Just \"BasicCredentials\") $ mempty\n         & type_ ?~ SwaggerObject\n         & properties .~ fromList [ (\"login\", textSchema), (\"password\", textSchema) ]\n\n\n"
+        }
+    ]
+}

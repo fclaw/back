@@ -18,6 +18,7 @@ module Scaffold.Api
        , FrontendApi (..)
        , UserApi (..)
        , PublicApi (..)
+       , SendGridApi (..)
        , api
        , swaggerHttpApi
        ) where

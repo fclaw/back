@@ -18,6 +18,7 @@ import qualified Scaffold.Api.Controller.File.Download as File.Download
 import qualified Scaffold.Api.Controller.File.Delete as File.Delete
 import qualified Scaffold.Api.Controller.File.Patch as File.Patch
 import qualified Scaffold.Api.Controller.Frontend.Log as Frontend.Log
+import qualified Scaffold.Api.Controller.SendGrid.SendMail as SendGrid.Send 
 import Servant.RawM.Server ()
 import Scaffold.Auth
 import Scaffold.Transport.Response
@@ -56,10 +57,11 @@ httpApi _ =
         Authenticated u -> toServant $ user u
         _ -> 
           const $ 
-          throwError $ 
-          wwwAuthenticatedErr 
-          "only for authorized personnel" 
-  , _httpApiPublic = toServant public        
+            throwError $ 
+              wwwAuthenticatedErr 
+              "only for authorized personnel" 
+  , _httpApiPublic = toServant public
+  , _httpApiSendGrid = toServant sendgrid   
   }
 
 file :: FileApi (AsServerT KatipController)
@@ -132,8 +134,23 @@ public =
     (liftIO $ do
       c <- WS.acceptRequest conn
       WS.pingThread c 1 $ do 
-        let serverInfo = "os: " <> os <> ", arch:" <> arch <> ", Haskell compiler: " <> showVersion compilerVersion
+        let serverInfo = 
+              "os: " <> 
+              os <> 
+              ", arch:" <> 
+              arch <> 
+              ", Haskell compiler: " <> 
+              showVersion compilerVersion
         st <- getSystemTime
         let msg = serverInfo <> ", server time: "  <> show (systemSeconds st)
         let resp = Ok [msg]
         WS.sendDataMessage c (WS.Text (Data.Aeson.encode resp) Nothing) ) }
+
+sendgrid :: SendGridApi  (AsServerT KatipController)
+sendgrid = 
+  SendGridApi
+  { _sendGridApiSendMail =
+    flip logExceptionM ErrorS
+    . katipAddNamespace
+    (Namespace ["sendgrid", "send"])
+    . SendGrid.Send.controller }

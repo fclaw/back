@@ -20,11 +20,6 @@ import Data.Aeson
 import Data.Aeson.Generic.DerivingVia
 import Control.Lens
 import GHC.Exts
-import Data.List (stripPrefix)
-import Data.Typeable
-import Data.Reflection (Reifies (..))
-import Data.Maybe
-
 
 newtype BasicAuth = BasicAuth Text
   deriving stock Generic
@@ -36,9 +31,6 @@ instance ToSchema BasicAuth where
     pure $
     NamedSchema (Just "BasicAuth") $
     toSchema (Proxy @Text)
-
-instance Typeable a => Reifies (StripConstructor a) (String -> String) where
-  reflect _ = \s -> fromMaybe s $ stripPrefix (show (typeRep (Proxy @a))) s
 
 data BasicCredentials = BasicCredentials { login :: Text, password :: Text } 
   deriving stock Generic

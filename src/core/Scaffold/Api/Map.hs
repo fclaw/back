@@ -12,6 +12,7 @@ module Scaffold.Api.Map
        , module User
        , module Front
        , module Public
+       , module SendGrid
        ) where
 
 import Scaffold.Api.File as File
@@ -19,6 +20,7 @@ import Scaffold.Api.Protected as Protected
 import Scaffold.Api.User as User
 import Scaffold.Api.Frontend as Front
 import Scaffold.Api.Public as Public
+import Scaffold.Api.SendGrid as SendGrid 
 import Scaffold.Auth
 
 import Servant.API.Generic
@@ -59,5 +61,10 @@ data HttpApi route =
        :: route
        :- Tags "Public"
        :> "public"
-       :> ToServant PublicApi AsApi  
+       :> ToServant PublicApi AsApi
+     , _httpApiSendGrid
+       :: route
+       :- Tags "SendGrid"
+       :> "sendgrid"
+       :> ToServant SendGridApi AsApi  
      } deriving stock Generic

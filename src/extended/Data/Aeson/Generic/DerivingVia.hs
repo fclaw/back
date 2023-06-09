@@ -49,6 +49,7 @@ module Data.Aeson.Generic.DerivingVia
      , StripConstructor
      )
   where
+
 import Data.Aeson
     ( FromJSON(..),
       GFromJSON,
@@ -67,6 +68,9 @@ import           Data.Reflection (Reifies (..))
 import           GHC.Generics    (Generic, Rep)
 import GHC.TypeLits
     ( KnownNat, KnownSymbol, natVal, symbolVal, Nat, Symbol )
+import Data.Typeable (Typeable, typeRep)
+import Data.List (stripPrefix)
+import Data.Maybe (fromMaybe)
 
 newtype WithOptions options a = WithOptions { runWithOptions :: a }
 
@@ -193,3 +197,6 @@ instance (Generic a, GFromJSON Zero (Rep a), Reifies (options :: k) Options)
   parseJSON = fmap WithOptions . genericParseJSON (reflect (Proxy @options))
 
 data StripConstructor a
+
+instance Typeable a => Reifies (StripConstructor a) (String -> String) where
+  reflect _ = \s -> fromMaybe s $ stripPrefix (show (typeRep (Proxy @a))) s

@@ -41,9 +41,6 @@ data Request = Request { build :: T.Text, msg :: T.Text }
      '[ FieldLabelModifier '[ UserDefined (StripConstructor Request)]] 
      Request
 
-instance Typeable a => Reifies (StripConstructor a) (String -> String) where
-  reflect _ = \s -> fromMaybe s $ stripPrefix (show (typeRep (Proxy @a))) s
-
 instance ToSchema Request where
   declareNamedSchema _ = do
     textSchema <- declareSchemaRef (Proxy @T.Text)

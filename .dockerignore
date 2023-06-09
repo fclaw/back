@@ -1,0 +1,12 @@
+*
+!bin
+!deploy
+!migration
+!nix
+!prog
+!src
+!test
+!tls
+!package.yaml
+!Setup.hs
+!stack.yaml

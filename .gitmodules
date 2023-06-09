@@ -1,3 +1,0 @@
-[submodule "proto"]
-  path = sub/proto
-  url = ../proto.git
