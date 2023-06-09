@@ -29,7 +29,10 @@ WORKDIR /build
 COPY --chown=nix:nix . .
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      nix-shell ./nix/build.nix --log-format bar-with-logs --verbose --command "stack install --fast -j12 --test"
+      nix-shell ./nix/build.nix \
+     --log-format bar-with-logs \ 
+     --verbose --command \ 
+     "yes | openapi3-code-generator-exe -o src/lib/Api/Sendgrid sendgrid/api.yaml && stack install --fast -j12 --test"
 
 FROM base as main
 

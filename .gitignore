@@ -13,3 +13,5 @@ site/
 .hie/
 *.html
 *.cabal
+src/lib/Api
+.lh

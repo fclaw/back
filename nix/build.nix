@@ -21,26 +21,7 @@ let
         "
     '';
   };
-
-  openapi3-code-generator = 
-    pkgs.stdenv.mkDerivation {
-      name = "openapi3-code-generator";
-      # fetchFromGitHub is a build support function that fetches a GitHub
-      # repository and extracts into a directory; so we can use it
-      # fetchFromGithub is actually a derivation itself :)
-      src = pkgs.fetchFromGitHub {
-        owner = "Haskell-OpenAPI-Code-Generator";
-        repo = "Haskell-OpenAPI-Client-Code-Generator";
-        rev = "3a2b41fb4e26d47ab9ca64711565dafedf961a3e";
-        sha256 = "sha256-b7sVdv0NWgC7cqKhduNZOYMroMagzvSu0cqItOJP5yg=";
-        };
-      buildInputs = [pkgs.stack pkgs.llvm pkgs.glib pkgs.haskell.compiler.ghc90];
-      installPhase = ''
-        mkdir -p $out/openapi3
-        stack --stack-root $out/openapi3 --verbosity info --system-ghc --local-bin-path $out/bin install --fast -j12
-      '';
-    };
-
+  openapi3-code-generator = import ./openapi3.nix { inherit pkgs; }; 
 in
 pkgs.mkShell {
   buildInputs = [
@@ -50,7 +31,7 @@ pkgs.mkShell {
   # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the correct one rather than the global <nixpkgs> when looking for the right `ghc` argument to pass in `nix/stack-integration.nix`
   # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more information
   NIX_PATH = "nixpkgs=" + pkgs.path;
-  shellHook =
-  '' echo "Welcome to server shell!!"
+  shellHook = ''
+     echo "Welcome to server shell!!"
   '';
 }
