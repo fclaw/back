@@ -24,15 +24,14 @@ import KatipController
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
 import GHC.Exts
-import Data.List (stripPrefix)
-import Data.Typeable
-import Data.Reflection (Reifies (..))
-import Data.Maybe
 import qualified Data.Text as T
 import Data.Swagger hiding (Response)
 import GHC.Generics
 import Control.Lens
 import Data.Functor (($>))
+import Data.Proxy (Proxy (..))
+import Type.Reflection (typeRep)
+import Control.Lens.Iso.Extended (stext)
 
 data Request = Request { build :: T.Text, msg :: T.Text }
   deriving stock Generic
@@ -44,7 +43,7 @@ data Request = Request { build :: T.Text, msg :: T.Text }
 instance ToSchema Request where
   declareNamedSchema _ = do
     textSchema <- declareSchemaRef (Proxy @T.Text)
-    pure $ NamedSchema (Just "Request(Frontend.Log)") $ mempty
+    pure $ NamedSchema (Just ("Frontend.Log." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList [ ("build", textSchema), ("msg", textSchema) ]
 

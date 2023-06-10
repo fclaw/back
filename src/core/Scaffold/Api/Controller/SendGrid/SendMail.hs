@@ -26,8 +26,9 @@ import qualified Data.Text as T
 import GHC.Generics
 import Data.Swagger hiding (Response)
 import Control.Lens
-import Data.Functor (($>))
 import Data.Proxy (Proxy (..))
+import Type.Reflection (typeRep)
+import Control.Lens.Iso.Extended (stext)
 
 newtype Email = Email T.Text
   deriving stock Generic
@@ -50,7 +51,7 @@ instance ToSchema Personalization where
   declareNamedSchema _ = do
     textSchema <- declareSchemaRef (Proxy @T.Text)
     xsSchema <- declareSchemaRef (Proxy @[Email])
-    pure $ NamedSchema (Just "Personalization") $ mempty
+    pure $ NamedSchema (Just ((show (typeRep @Personalization))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList [ ("to", xsSchema), ("subject", textSchema) ]
 
@@ -72,7 +73,7 @@ instance ToSchema Request where
     textSchema <- declareSchemaRef (Proxy @T.Text)
     emailSchema <- declareSchemaRef (Proxy @Email)
     xsSchema <- declareSchemaRef (Proxy @[Personalization])
-    pure $ NamedSchema (Just "Personalization") $ mempty
+    pure $ NamedSchema (Just ("SendGrid.SendMail." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList 
            [ ("personalizations", xsSchema)
