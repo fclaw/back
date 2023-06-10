@@ -19,7 +19,7 @@ configHasql:
 
 configKatip:
   katipPath: katip
-  katipSeverity: InfoS
+  katipSeverity: DebugS
   katipVerbosity: V3
   katipEnv: dev
 
@@ -53,4 +53,9 @@ configSmtp:
 
 configServerError: true
 
-configFrontendBuild: a683fa7289615a2e768d3fe7a80de6fd923d696d4c57989e4dd7a02edd81e53a
+configSendGrid:
+  apiKey: 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
+  senderIdentity: sergey.yakovlev@metalamp.io
+  persons:
+    - email: fclaw007@gmail.com
+      personalization: Yakovlev Sergey

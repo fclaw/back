@@ -215,7 +215,7 @@ main = do
         registerScribe "minio" minioScribe defaultScribeSettings env''
 
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (cfg^.Scaffold.Config.frontendBuild)
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (cfg^.Scaffold.Config.sendGrid)
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp

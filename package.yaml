@@ -194,11 +194,11 @@ library:
     - servant-websockets
     - websockets
     - aeson-pretty
+    - sendgrid-v3
 
   source-dirs:
     - src/core
     - src/extended
-    - src/foreign/SendGrid/lib
 
 executables:
   server:

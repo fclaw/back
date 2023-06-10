@@ -20,9 +20,10 @@ module Scaffold.Config
        , Telegram (..)
        , Env (..)
        , Cors (..)
-       , Smtp (..)
        , ServerError (..)
-       , FrontendBuild (..)
+       , Personalization (..)
+       , SendGrid (..)
+       , Email (..)
        , db
        , pass
        , port
@@ -53,9 +54,8 @@ module Scaffold.Config
        , serverConnection
        , cors
        , origins
-       , smtp
        , serverError
-       , frontendBuild
+       , sendGrid
          -- * Iso
        , isoEnv
        )
@@ -71,7 +71,8 @@ import qualified Data.Text as T
 import TH.Mk
 import Data.String.Conv
 import GHC.Generics
-
+import Data.Aeson.Generic.DerivingVia
+import Data.Swagger (ToSchema)
 
 data Db = Db
      { dbHost :: !String
@@ -139,19 +140,27 @@ newtype ServerError = ServerError { serverErrorMk500 :: Bool }
   deriving newtype FromJSON
   deriving stock Show
 
-newtype FrontendBuild = FrontendBuild { build :: T.Text }
+newtype Email = Email T.Text
   deriving stock Generic
-  deriving newtype FromJSON
+  deriving newtype (FromJSON, ToJSON)
   deriving stock Show
+  deriving ToSchema
 
-data Smtp =
-     Smtp
-     { smtpServer         :: !T.Text
-     , smtpLogin          :: !T.Text
-     , smtpPassword       :: !T.Text
-     , smtpEmail          :: !T.Text
-     , smtpDefaultSubject :: !T.Text
-     } deriving Show
+data Personalization = Personalization { email :: !Email, personalization :: !T.Text } 
+  deriving stock Generic
+  deriving stock Show
+  deriving FromJSON
+    via WithOptions 
+    '[ FieldLabelModifier '[ UserDefined (StripConstructor Personalization)]] 
+    Personalization
+  
+data SendGrid = SendGrid { apiKey :: !T.Text, persons :: ![Personalization], senderIdentity :: !Email }
+  deriving stock Generic
+  deriving stock Show
+  deriving FromJSON
+    via WithOptions 
+    '[ FieldLabelModifier '[ UserDefined (StripConstructor SendGrid)]] 
+    SendGrid
 
 data Config =
      Config
@@ -164,9 +173,8 @@ data Config =
      , configTelegram         :: !Telegram
      , configServerConnection :: !ServerConnection
      , configCors             :: !Cors
-     , configSmtp             :: !Smtp
      , configServerError      :: !ServerError
-     , configFrontendBuild    :: !FrontendBuild
+     , configSendGrid         :: !SendGrid
      } deriving Show
 
 makeFields ''Config
@@ -178,7 +186,8 @@ makeFields ''Swagger
 makeFields ''Telegram
 makeFields ''ServerConnection
 makeFields ''Cors
-makeFields ''Smtp
+makeFields ''Personalization
+makeFields ''SendGrid
 
 deriveFromJSON defaultOptions ''Db
 deriveFromJSON defaultOptions ''HasqlSettings
@@ -189,7 +198,6 @@ deriveFromJSON defaultOptions ''Minio
 deriveFromJSON defaultOptions ''Telegram
 deriveFromJSON defaultOptions ''ServerConnection
 deriveFromJSON defaultOptions ''Cors
-deriveFromJSON defaultOptions ''Smtp
 deriveFromJSON defaultOptions ''Swagger
 deriveFromJSON defaultOptions ''Config
 

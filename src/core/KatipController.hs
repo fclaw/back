@@ -43,10 +43,10 @@ module KatipController
        , askLoggerIO
          -- * aux
       , runTelegram
-      , frontendBuild
+      , sendGrid
        ) where
 
-import Scaffold.Config (FrontendBuild)
+import Scaffold.Config (SendGrid)
 
 import Control.Lens
 import Control.Monad.IO.Class
@@ -84,18 +84,13 @@ type KatipLoggerLocIO = Maybe Loc -> Severity -> LogStr -> IO ()
 
 data KatipEnv =
      KatipEnv
-     { katipEnvTerminal
-       :: !Term
-     , katipEnvHasqlDbPool
-       :: !(Pool.Pool Hasql.Connection)
-     , katipEnvHttpReqManager
-       :: !Manager
-     , katipEnvApiKeys
-       :: ![(String, String)]
+     { katipEnvTerminal :: !Term
+     , katipEnvHasqlDbPool :: !(Pool.Pool Hasql.Connection)
+     , katipEnvHttpReqManager :: !Manager
+     , katipEnvApiKeys :: ![(String, String)]
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: !Web.Telegram.Service
-     , katipEnvFrontendBuild :: !FrontendBuild 
-     }
+     , katipEnvSendGrid :: !SendGrid }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 

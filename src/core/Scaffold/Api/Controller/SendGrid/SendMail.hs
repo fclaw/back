@@ -13,11 +13,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Scaffold.Api.Controller.SendGrid.SendMail (controller, Request) where
 
 import Scaffold.Transport.Response
+import Scaffold.Config (Email (..), SendGrid (..), Personalization (..))
 
+import Katip
 import KatipController
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
@@ -30,40 +33,20 @@ import Data.Proxy (Proxy (..))
 import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
 import BuildInfo (location)
-
-newtype Email = Email T.Text
-  deriving stock Generic
-  deriving newtype (ToJSON, FromJSON)
-  deriving newtype ToSchema
-
--- https://docs.sendgrid.com/for-developers/sending-email/personalizations
-data Personalization = 
-     Personalization 
-     { to :: ![Email]
-     , subject :: !T.Text
-     } 
-  deriving stock Generic
-  deriving (ToJSON, FromJSON)
-     via WithOptions 
-     '[ FieldLabelModifier '[ UserDefined (StripConstructor Personalization)]] 
-     Personalization
-
-instance ToSchema Personalization where
-  declareNamedSchema _ = do
-    textSchema <- declareSchemaRef (Proxy @T.Text)
-    xsSchema <- declareSchemaRef (Proxy @[Email])
-    pure $ NamedSchema (Just ((show (typeRep @Personalization))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ fromList [ ("to", xsSchema), ("subject", textSchema) ]
+import qualified Network.SendGridV3.Api as SendGrid 
+import Data.Time.Clock.System (getSystemTime, systemSeconds)
+import Control.Monad.IO.Class
+import Network.HTTP.Client (HttpException (..))
+import Data.Functor (($>))
 
 data Request = 
      Request 
-     { personalizations :: ![Personalization]
-     , from :: !Email
-     , theme :: !T.Text
-     , body :: !T.Text 
-     }
+     { from :: !Email
+     , personalization :: !T.Text 
+     , subject :: !T.Text
+     , body :: !T.Text }
     deriving stock Generic
+    deriving stock Show
     deriving (ToJSON, FromJSON)
        via WithOptions 
        '[ FieldLabelModifier '[ UserDefined (StripConstructor Request)]] 
@@ -73,14 +56,33 @@ instance ToSchema Request where
   declareNamedSchema _ = do
     textSchema <- declareSchemaRef (Proxy @T.Text)
     emailSchema <- declareSchemaRef (Proxy @Email)
-    xsSchema <- declareSchemaRef (Proxy @[Personalization])
     pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList 
-           [ ("personalizations", xsSchema)
+           [ ("personalization", textSchema)
            , ("from", emailSchema)
-           , ("theme", textSchema)
+           , ("subject", textSchema)
            , ("body", textSchema) ]
 
 controller :: Request -> KatipController (Response ())
-controller = undefined
+controller req = do
+  $(logTM) InfoS $ logStr (show req)
+  SendGrid {..} <- fmap (^.katipEnv.sendGrid) ask
+  let mail = mkMail req persons senderIdentity
+  tm <- liftIO $ fmap systemSeconds getSystemTime
+  let handleResp (Left ex@(InvalidUrlException _ _)) = 
+         $(logTM) ErrorS (logStr (show ex)) $> Error (asError @T.Text "invalid url")
+      handleResp (Left (HttpExceptionRequest _ ex)) = 
+         $(logTM) ErrorS (logStr (show ex)) $> Error (asError @T.Text "error")
+      handleResp _ = return $ Ok ()
+  resp <- liftIO $ 
+    SendGrid.sendMail 
+    (SendGrid.ApiKey apiKey) 
+    (mail { SendGrid._mailSendAt = Just (fromIntegral tm) })
+  handleResp resp
+
+mkMail :: Request -> [Personalization] -> Email -> SendGrid.Mail () ()
+mkMail Request {..} xs sender =
+  let to = SendGrid.personalization $ fromList $ xs <&> \Personalization {..} -> SendGrid.MailAddress (coerce email) personalization
+      content = Just $ fromList [SendGrid.mailContentText body]
+  in SendGrid.mail [to] (SendGrid.MailAddress (coerce sender) personalization) subject content

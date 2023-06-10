@@ -17,7 +17,6 @@
 module Scaffold.Api.Controller.Frontend.Log (controller, Request) where
 
 import Scaffold.Transport.Response
-import Scaffold.Config (FrontendBuild (..))
 
 import Katip
 import KatipController
@@ -49,10 +48,6 @@ instance ToSchema Request where
          & properties .~ fromList [ ("build", textSchema), ("msg", textSchema) ]
 
 controller :: Request -> KatipController (Response ())
-controller (Request in_build msg) = do
-  build <- fmap (^.katipEnv.frontendBuild) ask
-  if coerce build == in_build then
-    $(logTM) InfoS (logStr msg) $> Ok ()
-  else pure $ Error $ asError @T.Text  "credentials mismatched"
+controller (Request _ msg) = $(logTM) InfoS (logStr msg) $> Ok ()
 
 
