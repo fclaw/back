@@ -40,10 +40,8 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "openapi3-code-generator-exe -f -o src/foreign/Sendgrid \ 
-     --package-name sendgrid --property-type-suffix sendgrid sendgrid-openapiv3.yaml && \ 
-     python ./scripts/duplicate.py src/foreign/Sendgrid/sendgrid.cabal && \ 
-     stack install --fast -j12 --test"
+     "./scripts/sendgrid.sh sendgrid-openapiv3.yaml /build && \ 
+      stack install --fast -j12 --test"
 
 FROM base as main
 
