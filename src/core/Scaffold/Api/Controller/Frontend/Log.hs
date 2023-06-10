@@ -32,6 +32,7 @@ import Data.Functor (($>))
 import Data.Proxy (Proxy (..))
 import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
+import BuildInfo (location)
 
 data Request = Request { build :: T.Text, msg :: T.Text }
   deriving stock Generic
@@ -43,7 +44,7 @@ data Request = Request { build :: T.Text, msg :: T.Text }
 instance ToSchema Request where
   declareNamedSchema _ = do
     textSchema <- declareSchemaRef (Proxy @T.Text)
-    pure $ NamedSchema (Just ("Frontend.Log." <> (show (typeRep @Request))^.stext)) $ mempty
+    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList [ ("build", textSchema), ("msg", textSchema) ]
 

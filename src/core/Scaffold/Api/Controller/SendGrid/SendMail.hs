@@ -29,6 +29,7 @@ import Control.Lens
 import Data.Proxy (Proxy (..))
 import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
+import BuildInfo (location)
 
 newtype Email = Email T.Text
   deriving stock Generic
@@ -73,7 +74,7 @@ instance ToSchema Request where
     textSchema <- declareSchemaRef (Proxy @T.Text)
     emailSchema <- declareSchemaRef (Proxy @Email)
     xsSchema <- declareSchemaRef (Proxy @[Personalization])
-    pure $ NamedSchema (Just ("SendGrid.SendMail." <> (show (typeRep @Request))^.stext)) $ mempty
+    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList 
            [ ("personalizations", xsSchema)

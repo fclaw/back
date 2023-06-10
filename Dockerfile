@@ -24,6 +24,8 @@ ENV PATH="/home/nix/bin:${PATH}"
 
 FROM base as server-build
 
+RUN export LANG=en_US.UTF-8 
+
 WORKDIR /build
 
 COPY --chown=nix:nix . .
@@ -32,7 +34,7 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "openapi3-code-generator-exe -f -o src/lib/Api/SendGrid sendgrid/api.yaml"
+     "openapi3-code-generator-exe -f -o src/lib/Api/SendGrid sendgrid/api.yaml && stack install --fast -j12 --test"
 
 FROM base as main
 
