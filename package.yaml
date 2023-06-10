@@ -198,7 +198,7 @@ library:
   source-dirs:
     - src/core
     - src/extended
-    - scr/lib
+    - src/lib
 
 executables:
   server:
