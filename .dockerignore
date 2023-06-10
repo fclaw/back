@@ -12,3 +12,4 @@
 !stack.yaml
 !sendgrid
 !.git
+!sendgrid-openapiv3.yaml

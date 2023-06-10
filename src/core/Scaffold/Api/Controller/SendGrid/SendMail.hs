@@ -33,11 +33,7 @@ import Data.Proxy (Proxy (..))
 import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
 import BuildInfo (location)
-import qualified Network.SendGridV3.Api as SendGrid 
-import Data.Time.Clock.System (getSystemTime, systemSeconds)
-import Control.Monad.IO.Class
-import Network.HTTP.Client (HttpException (..))
-import Data.Functor (($>))
+import OpenAPI.Common
 
 data Request = 
      Request 
@@ -68,21 +64,4 @@ controller :: Request -> KatipController (Response ())
 controller req = do
   $(logTM) InfoS $ logStr (show req)
   SendGrid {..} <- fmap (^.katipEnv.sendGrid) ask
-  let mail = mkMail req persons senderIdentity
-  tm <- liftIO $ fmap systemSeconds getSystemTime
-  let handleResp (Left ex@(InvalidUrlException _ _)) = 
-         $(logTM) ErrorS (logStr (show ex)) $> Error (asError @T.Text "invalid url")
-      handleResp (Left (HttpExceptionRequest _ ex)) = 
-         $(logTM) ErrorS (logStr (show ex)) $> Error (asError @T.Text "error")
-      handleResp _ = return $ Ok ()
-  resp <- liftIO $ 
-    SendGrid.sendMail 
-    (SendGrid.ApiKey apiKey) 
-    (mail { SendGrid._mailSendAt = Just (fromIntegral tm) })
-  handleResp resp
-
-mkMail :: Request -> [Personalization] -> Email -> SendGrid.Mail () ()
-mkMail Request {..} xs sender =
-  let to = SendGrid.personalization $ fromList $ xs <&> \Personalization {..} -> SendGrid.MailAddress (coerce email) personalization
-      content = Just $ fromList [SendGrid.mailContentText body]
-  in SendGrid.mail [to] (SendGrid.MailAddress (coerce sender) personalization) subject content
+  return $ Ok ()
