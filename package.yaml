@@ -198,7 +198,7 @@ library:
   source-dirs:
     - src/core
     - src/extended
-    - src/lib
+    - src/foreign/SendGrid/lib
 
 executables:
   server:

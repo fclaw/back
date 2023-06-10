@@ -21,12 +21,11 @@ let
         "
     '';
   };
-  openapi3-code-generator = import ./openapi3-haskell.nix { inherit pkgs; }; 
 in
 pkgs.mkShell {
   buildInputs = [
     stack-wrapped 
-    openapi3-code-generator
+    pkgs.openapi-generator-cli
   ];
   # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the correct one rather than the global <nixpkgs> when looking for the right `ghc` argument to pass in `nix/stack-integration.nix`
   # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more information

@@ -40,7 +40,7 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "openapi3-code-generator-exe -f -o src/lib/Api/SendGrid sendgrid/api.yaml && stack install --fast -j12 --test"
+     "openapi-generator-cli generate -i sendgrid.json -g haskell-http-client -o src/foreign/SendGrid --additional-properties=baseModule=SendGrid && stack install --fast -j12 --test"
 
 FROM base as main
 
