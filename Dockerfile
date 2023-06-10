@@ -3,15 +3,7 @@ FROM amd64/ubuntu as base
 RUN apt update && \
     apt install -y curl && \
     apt install -y tar && \
-    apt install -y xz-utils && \
-    apt install -y locales
-
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-    
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8  
+    apt install -y xz-utils
 
 RUN addgroup --system nixbld && \
     adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
@@ -32,7 +24,14 @@ ENV PATH="/home/nix/bin:${PATH}"
 
 FROM base as server-build
 
-RUN export LANG=en_US.UTF-8 
+RUN apt install -y locales
+
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+
+ENV LANG en_US.UTF-8  
+ENV LANGUAGE en_US:en  
+ENV LC_ALL en_US.UTF-8  
 
 WORKDIR /build
 

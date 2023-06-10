@@ -21,7 +21,7 @@ let
         "
     '';
   };
-  openapi3-code-generator = import ./openapi3.nix { inherit pkgs; }; 
+  openapi3-code-generator = import ./openapi3-haskell.nix { inherit pkgs; }; 
 in
 pkgs.mkShell {
   buildInputs = [
