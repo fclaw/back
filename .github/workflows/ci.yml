@@ -56,7 +56,7 @@ jobs:
 
   push_to_google_registry:
     name: Push Docker image to Google
-    environment: Google
+    environment: TTH_Google
     runs-on: ubuntu-latest
     steps:    
       - name: Check out the repo
