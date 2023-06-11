@@ -40,8 +40,7 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "./scripts/sendgrid.sh sendgrid-openapiv3.yaml . && \ 
-      ls -la /build/src/foreign/Sendgrid && \
+     "./scripts/sendgrid.sh sendgrid-openapiv3.yaml . && \
       stack install --system-ghc --fast -j12 --test"
 
 FROM base as main
