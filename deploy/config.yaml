@@ -44,19 +44,12 @@ configTelegram:
 configCors:
   corsOrigins: [http://127.0.0.1:8080, http://127.0.0.1:3001]
 
-configSmtp:
-  smtpServer: smtp.gmail.com
-  smtpLogin: fclaw007
-  smtpPassword: hosvxrxoiuauokae
-  smtpEmail: info@edgenode.org
-  smtpDefaultSubject: Info
-
 configServerError: true
 
 configSendGrid:
   url: "https://api.sendgrid.com/v3"
   apiKey: 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
-  senderIdentity: sergey.yakovlev@metalamp.io
+  senderIdentity: sergey.yakovlev@baranseli.ru
   persons:
     - email: fclaw007@gmail.com
-      personalization: Yakovlev Sergey
+      personalization: Sergey Yakovlev
