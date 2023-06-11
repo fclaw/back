@@ -30,6 +30,7 @@ pkgs.mkShell {
     pkgs.glibcLocalesUtf8
     pkgs.glibcLocales
     pkgs.python311
+    pkgs.haskell.compiler.ghc927
   ];
   # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the correct one rather than the global <nixpkgs> when looking for the right `ghc` argument to pass in `nix/stack-integration.nix`
   # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more information
