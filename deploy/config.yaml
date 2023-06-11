@@ -10,7 +10,7 @@ configServerConnection:
 
 configSwagger:
   swaggerHost: https://back-g52bgv5bua-ew.a.run.app
-  swaggerPort: 12000
+  swaggerPort:
 
 configHasql:
   hasqlSettingsPoolN: 50

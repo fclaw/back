@@ -52,11 +52,11 @@ newtype HttpWrapperApi route =
 api :: Proxy (ToServantApi Api)
 api = genericApi (Proxy :: Proxy Api)
 
-swaggerHttpApi :: String -> Int -> Version -> Swagger
-swaggerHttpApi hs port ver =
+swaggerHttpApi :: String -> Maybe Int -> Version -> Swagger
+swaggerHttpApi url port ver =
   toSwagger (genericApi (Proxy @HttpWrapperApi))
   & schemes ?~ [Http, Https]
-  & host ?~ Host hs (Just (fromIntegral port))
+  & host ?~ Host url (fmap fromIntegral port)
   & info.description ?~ "Scaffold server api"^.stext
   & info.version .~ show ver^.stext
   & info.contact ?~ Contact Nothing Nothing (Just ("fclaw007@gmail.com"^.stext))

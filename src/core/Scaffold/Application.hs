@@ -77,7 +77,7 @@ import Control.Concurrent.STM.TChan
 data Cfg =
      Cfg
      { cfgHost          :: !String
-     , cfgSwaggerPort   :: !Int
+     , cfgSwaggerPort   :: !(Maybe Int)
      , cfgServerPort    :: !Int
      , cfgCors          :: !Cfg.Cors
      , cfgServerError   :: !Cfg.ServerError

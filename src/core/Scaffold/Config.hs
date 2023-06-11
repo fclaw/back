@@ -82,7 +82,7 @@ data Db = Db
      , dbDatabase :: !String
      } deriving Show
 
-data Swagger = Swagger { swaggerHost :: String, swaggerPort :: Int }
+data Swagger = Swagger { swaggerHost :: String, swaggerPort :: Maybe Int }
   deriving Show
 
 data HasqlSettings =

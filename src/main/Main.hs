@@ -133,7 +133,7 @@ main = do
         & Scaffold.Config.minio.host %~ (`fromMaybe` minioHost)
         & Scaffold.Config.minio.port %~ (`fromMaybe` minioPort)
         & swagger.host %~ (`fromMaybe` swaggerHost)
-        & swagger.port %~ (`fromMaybe` swaggerPort)
+        & swagger.port %~ (fmap (`fromMaybe` swaggerPort))
         & serverConnection.port %~ (`fromMaybe` serverPort)
   for_ printCfg $ \case Y -> pPrint cfg; N -> pure ()
 
