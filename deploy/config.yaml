@@ -54,6 +54,7 @@ configSmtp:
 configServerError: true
 
 configSendGrid:
+  url: "https://api.sendgrid.com/v3"
   apiKey: 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
   senderIdentity: sergey.yakovlev@metalamp.io
   persons:

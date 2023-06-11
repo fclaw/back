@@ -154,7 +154,13 @@ data Personalization = Personalization { email :: !Email, personalization :: !T.
     '[ FieldLabelModifier '[ UserDefined (StripConstructor Personalization)]] 
     Personalization
   
-data SendGrid = SendGrid { apiKey :: !T.Text, persons :: ![Personalization], senderIdentity :: !Email }
+data SendGrid =
+     SendGrid 
+     { url :: !T.Text
+     , apiKey :: !T.Text
+     , persons :: ![Personalization]
+     , senderIdentity :: !Email 
+     }
   deriving stock Generic
   deriving stock Show
   deriving FromJSON

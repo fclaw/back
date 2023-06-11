@@ -55,6 +55,7 @@ import qualified Text.Read.Lex as L
 import GHC.Read
 import Text.ParserCombinators.ReadPrec (pfail)
 import System.Directory (createDirectoryIfMissing)
+import qualified SendGrid as SendGrid
 
 data PrintCfg = Y | N deriving stock (Generic)
 
@@ -207,15 +208,22 @@ main = do
 
   telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram)
 
-  minioScribe <- mkMinioScribe minioEnv (cfg^.Scaffold.Config.minio.logBucket.stext) (permitItem (cfg^.katip.severity.from stringify)) (cfg^.katip.verbosity.from stringify)
+  minioScribe <- 
+    mkMinioScribe minioEnv 
+    (cfg^.Scaffold.Config.minio.logBucket.stext) 
+    (permitItem (cfg^.katip.severity.from stringify)) 
+    (cfg^.katip.verbosity.from stringify)
 
   let env = do
         env' <- registerScribe "stdout" std defaultScribeSettings init_env
         env'' <- registerScribe "file" file defaultScribeSettings env'
         registerScribe "minio" minioScribe defaultScribeSettings env''
 
+  let s@Scaffold.Config.SendGrid {..} = cfg^.Scaffold.Config.sendGrid
+  let sendgrid = SendGrid.configure url apiKey
+
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (cfg^.Scaffold.Config.sendGrid)
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (s, sendgrid)
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp

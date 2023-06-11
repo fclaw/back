@@ -18,7 +18,18 @@
 module Scaffold.Api.Controller.SendGrid.SendMail (controller, Request) where
 
 import Scaffold.Transport.Response
-import Scaffold.Config (Email (..), SendGrid (..), Personalization (..))
+import Scaffold.Config (Email (..), SendGrid (..), email)
+
+import OpenAPI.Operations.POST_mail_send 
+  ( pOST_mail_send
+  , mkPOST_mail_sendRequestBody
+  , mkPOST_mail_sendRequestBodyContentsendgrid
+  , mkPOST_mail_sendRequestBodyPersonalizationssendgrid
+  , pOST_mail_sendRequestBodyPersonalizationssendgridSend_at
+  , pOST_mail_sendRequestBodyPersonalizationssendgridSubject
+  )
+import OpenAPI.Types.FromEmailObject (mkFrom_email_object)
+import OpenAPI.Types.ToEmailArray (mkTo_email_arrayItem)
 
 import Katip
 import KatipController
@@ -27,13 +38,19 @@ import Data.Aeson.Generic.DerivingVia
 import GHC.Exts
 import qualified Data.Text as T
 import GHC.Generics
-import Data.Swagger hiding (Response)
+import Data.Swagger hiding (Response, email)
 import Control.Lens
 import Data.Proxy (Proxy (..))
 import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
 import BuildInfo (location)
 import OpenAPI.Common
+import Control.Monad.IO.Class
+import Network.HTTP.Client (responseStatus, responseBody)
+import Network.HTTP.Types.Status (ok200, accepted202)
+import Data.Functor (($>))
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.Time.Clock.System (getSystemTime, systemSeconds)
 
 data Request = 
      Request 
@@ -61,7 +78,33 @@ instance ToSchema Request where
            , ("body", textSchema) ]
 
 controller :: Request -> KatipController (Response ())
-controller req = do
+controller req@Request {..} = do
   $(logTM) InfoS $ logStr (show req)
-  SendGrid {..} <- fmap (^.katipEnv.sendGrid) ask
-  return $ Ok ()
+  (SendGrid {..}, sendgridCfg) <- fmap (^.katipEnv.sendGrid) ask
+  tm <- fmap (fromIntegral . systemSeconds) $ liftIO $ getSystemTime
+  let reqBody = 
+        mkPOST_mail_sendRequestBody 
+        [mkPOST_mail_sendRequestBodyContentsendgrid 
+         "text/plain" 
+         ("from:" <> 
+          coerce from <> 
+          ", " <> 
+          personalization <> 
+          ", message: " <> 
+          body)]
+        (mkFrom_email_object (coerce senderIdentity))
+        [((mkPOST_mail_sendRequestBodyPersonalizationssendgrid 
+         (map (mkTo_email_arrayItem . coerce . email) persons))
+         {  pOST_mail_sendRequestBodyPersonalizationssendgridSend_at = Just tm
+          , pOST_mail_sendRequestBodyPersonalizationssendgridSubject = Just $ subject })
+        ]
+        subject
+  $(logTM) InfoS $ logStr (show (encodePretty reqBody))      
+  resp <- liftIO $ runWithConfiguration sendgridCfg (pOST_mail_send (Just reqBody))
+  let handleResp resp =
+        if responseStatus resp == ok200 || 
+           responseStatus resp == accepted202 
+        then return $ Ok ()
+        else $(logTM) ErrorS (logStr ("SendGrid error: " <> show (responseBody resp))) 
+             $> Error (asError @T.Text "something went wrong")
+  handleResp resp
