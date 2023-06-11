@@ -9,7 +9,7 @@ configServerConnection:
   serverConnectionPort: 12000
 
 configSwagger:
-  swaggerHost: 127.0.0.1
+  swaggerHost: https://back-g52bgv5bua-ew.a.run.app
   swaggerPort: 12000
 
 configHasql:
