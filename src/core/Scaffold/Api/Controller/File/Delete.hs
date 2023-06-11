@@ -20,7 +20,7 @@ import Control.Lens.Iso.Extended
 import Data.Bool
 import BuildInfo
 
-controller :: Id "file" -> KatipController (Response ())
+controller :: Id "file" -> KatipControllerM (Response ())
 controller id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"

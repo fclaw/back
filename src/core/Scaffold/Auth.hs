@@ -9,7 +9,7 @@ import qualified Data.Text as T
 import Servant (BasicAuthData(..))
 import Servant.Auth.Server (wwwAuthenticatedErr, FromJWT (decodeJWT), FromBasicAuthData (..), BasicAuthCfg, AuthResult (..), ToJWT (..))
 import Scaffold.Transport.Response
-import KatipController (KatipController, KatipLoggerLocIO)
+import KatipController (KatipControllerM, KatipLoggerLocIO)
 import qualified Data.Map as M
 import qualified Data.Text.Encoding as T
 import Katip
@@ -30,7 +30,7 @@ type instance BasicAuthCfg = BasicAuthData -> IO (AuthResult User)
 instance FromBasicAuthData User where
   fromBasicAuthData basicAuthData authChecker = authChecker basicAuthData
 
-withBasicAuth :: AuthResult User -> (User -> KatipController (Response a)) -> KatipController (Response a)
+withBasicAuth :: AuthResult User -> (User -> KatipControllerM (Response a)) -> KatipControllerM (Response a)
 withBasicAuth (Authenticated user) runApi = runApi user
 withBasicAuth _ _ = throwError $ wwwAuthenticatedErr "only for authorized personnel"
 

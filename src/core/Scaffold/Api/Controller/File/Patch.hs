@@ -28,7 +28,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Error.Class
 import BuildInfo
 
-controller :: Id "file" -> File -> KatipController (Response ())
+controller :: Id "file" -> File -> KatipControllerM (Response ())
 controller id file = do
   runTelegram $location (id, file)
   $(logTM) DebugS (logStr (show (id, file)))

@@ -42,10 +42,10 @@ import Data.Time.Clock.System (getSystemTime, systemSeconds)
 import Data.Version (showVersion)
 
 
-controller :: Api (AsServerT KatipController)
+controller :: Api (AsServerT KatipControllerM)
 controller = Api { _apiHttp = toServant . httpApi  }
 
-httpApi :: Maybe IP4 -> HttpApi (AsServerT KatipController)
+httpApi :: Maybe IP4 -> HttpApi (AsServerT KatipControllerM)
 httpApi _ =
   HttpApi 
   { _httpApiFile = toServant file
@@ -64,7 +64,7 @@ httpApi _ =
   , _httpApiSendGrid = toServant sendgrid   
   }
 
-file :: FileApi (AsServerT KatipController)
+file :: FileApi (AsServerT KatipControllerM)
 file =
   FileApi
   { _fileApiUpload = \bucket files ->
@@ -88,7 +88,7 @@ file =
      (Namespace ["file", "download"])
      (File.Download.controller option fid w h) }
 
-admin :: User -> AdminApi (AsServerT KatipController)
+admin :: User -> AdminApi (AsServerT KatipControllerM)
 admin _ = 
   AdminApi {
     _adminApiTest = do
@@ -96,7 +96,7 @@ admin _ =
       runTelegram $location $ show [1, 2]
       runTelegram $location (show ct) $> Ok ct }
 
-auth :: AuthApi (AsServerT KatipController) 
+auth :: AuthApi (AsServerT KatipControllerM) 
 auth = 
   AuthApi 
   { _authApiAuthWithBasic = \_ -> 
@@ -105,7 +105,7 @@ auth =
     (Namespace ["auth", "login", "basic"]) 
     (return $ Ok $ BasicAuth "ZmNsYXcwMDdAZ21haWwuY29tOnRlc3Q=") }
 
-frontend :: FrontendApi (AsServerT KatipController)
+frontend :: FrontendApi (AsServerT KatipControllerM)
 frontend = 
   FrontendApi 
   { _frontendApiLog = \req -> 
@@ -114,7 +114,7 @@ frontend =
     (Namespace ["frontend", "log"]) 
     (Frontend.Log.controller req) }
 
-user :: User -> UserApi (AsServerT KatipController) 
+user :: User -> UserApi (AsServerT KatipControllerM) 
 user _ =
   UserApi 
   { _userApiGetProfile = \_ ->
@@ -123,7 +123,7 @@ user _ =
     (Namespace ["user", "profile", "get"])
     undefined }
 
-public :: PublicApi (AsServerT KatipController)
+public :: PublicApi (AsServerT KatipControllerM)
 public = 
   PublicApi 
   { _publicApiGetServerInfo = 
@@ -146,7 +146,7 @@ public =
         let resp = Ok [msg]
         WS.sendDataMessage c (WS.Text (Data.Aeson.encode resp) Nothing) ) }
 
-sendgrid :: SendGridApi  (AsServerT KatipController)
+sendgrid :: SendGridApi  (AsServerT KatipControllerM)
 sendgrid = 
   SendGridApi
   { _sendGridApiSendMail =

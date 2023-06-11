@@ -77,7 +77,7 @@ instance ToSchema Request where
            , ("subject", textSchema)
            , ("body", textSchema) ]
 
-controller :: Request -> KatipController (Response ())
+controller :: Request -> KatipControllerM (Response ())
 controller req@Request {..} = do
   $(logTM) InfoS $ logStr (show req)
   (SendGrid {..}, sendgridCfg) <- fmap (^.katipEnv.sendGrid) ask

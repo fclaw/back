@@ -47,7 +47,7 @@ instance ToSchema Request where
          & type_ ?~ SwaggerObject
          & properties .~ fromList [ ("build", textSchema), ("msg", textSchema) ]
 
-controller :: Request -> KatipController (Response ())
+controller :: Request -> KatipControllerM (Response ())
 controller (Request _ msg) = $(logTM) InfoS (logStr msg) $> Ok ()
 
 

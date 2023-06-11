@@ -53,7 +53,7 @@ mkFromHttpApiDataEnum ''Option [|from stext.from isoOption.to Right|]
 
 imageMimeTypes = ["image/apng", "image/bmp", "image/gif", "image/x-icon", "image/jpeg", "image/png", "image/svg+xml", "image/tiff", "image/webp"]
 
-controller :: Option -> Id "file" -> Maybe Int -> Maybe Int -> KatipController Application
+controller :: Option -> Id "file" -> Maybe Int -> Maybe Int -> KatipControllerM Application
 controller option id width_m height_m = do
   runTelegram $location (option, id, width_m, height_m)
   $(logTM) DebugS (logStr (show (option, id, width_m, height_m)))

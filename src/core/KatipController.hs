@@ -13,7 +13,7 @@
 
 module KatipController
        ( Config (..)
-       , KatipController (..)
+       , KatipControllerM (..)
        , KatipEnv (..)
        , KatipLogger (..)
        , KatipState (..)
@@ -122,8 +122,8 @@ newtype KatipControllerWriter = KatipControllerWriter [String]
   deriving newtype Semigroup
 
 -- ServerM
-newtype KatipController a =
-        KatipController
+newtype KatipControllerM a =
+        KatipControllerM
         { unwrap
           :: RWS.RWST Config
              KatipControllerWriter
@@ -151,20 +151,20 @@ makeFields ''KatipEnv
 makeFields ''Minio
 
 -- These instances get even easier with lenses!
-instance Katip KatipController where
-  getLogEnv = KatipController $ asks configEnv
-  localLogEnv f (KatipController m) = KatipController (local (over env f) m)
+instance Katip KatipControllerM where
+  getLogEnv = KatipControllerM $ asks configEnv
+  localLogEnv f (KatipControllerM m) = KatipControllerM (local (over env f) m)
 
-instance KatipContext KatipController where
-  getKatipContext = KatipController $ asks configCtx
-  localKatipContext f (KatipController m) = KatipController (local (over ctx f) m)
-  getKatipNamespace = KatipController $ asks configNm
-  localKatipNamespace f (KatipController m) = KatipController (local (over nm f) m)
+instance KatipContext KatipControllerM where
+  getKatipContext = KatipControllerM $ asks configCtx
+  localKatipContext f (KatipControllerM m) = KatipControllerM (local (over ctx f) m)
+  getKatipNamespace = KatipControllerM $ asks configNm
+  localKatipNamespace f (KatipControllerM m) = KatipControllerM (local (over nm f) m)
 
-runKatipController :: Config -> KatipControllerState -> KatipController a -> Handler a
+runKatipController :: Config -> KatipControllerState -> KatipControllerM a -> Handler a
 runKatipController cfg st app = fmap fst (RWS.evalRWST (unwrap app) cfg st)
 
-runTelegram :: Typeable a => String -> a -> KatipController ()
+runTelegram :: Typeable a => String -> a -> KatipControllerM ()
 runTelegram location msg = do
   KatipControllerState _ ch <- get
   liftIO $ atomically $ ch `writeTChan` TelegramMsg (mkPretty "At module " location) msg

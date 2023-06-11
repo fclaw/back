@@ -31,7 +31,7 @@ import Data.Foldable
 import System.Directory
 import System.FilePath
 
-controller :: T.Text -> Files -> KatipController (Response [Id "file"])
+controller :: T.Text -> Files -> KatipControllerM (Response [Id "file"])
 controller bucket x = do
   runTelegram $location (bucket, x)
   $(logTM) DebugS (logStr (show (bucket, x)))
