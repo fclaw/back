@@ -56,6 +56,7 @@ import GHC.Read
 import Text.ParserCombinators.ReadPrec (pfail)
 import System.Directory (createDirectoryIfMissing)
 import qualified SendGrid as SendGrid
+import Control.Applicative ((<|>))
 
 data PrintCfg = Y | N deriving stock (Generic)
 
@@ -123,7 +124,8 @@ toSnake = map toLower . concat . underscores . splitR isUpper
 
 main :: IO ()
 main = do
-  Cmd {..} <- unwrapRecord "scaffold"
+  cmd@Cmd {..} <- unwrapRecord "scaffold"
+  pPrint cmd 
   rawCfg <- Scaffold.Config.load cfgPath
   let cfg =
         rawCfg
@@ -133,7 +135,7 @@ main = do
         & Scaffold.Config.minio.host %~ (`fromMaybe` minioHost)
         & Scaffold.Config.minio.port %~ (`fromMaybe` minioPort)
         & swagger.host %~ (`fromMaybe` swaggerHost)
-        & swagger.port %~ (fmap (`fromMaybe` swaggerPort))
+        & swagger.port %~ (flip (<|>) swaggerPort)
         & serverConnection.port %~ (`fromMaybe` serverPort)
   for_ printCfg $ \case Y -> pPrint cfg; N -> pure ()
 

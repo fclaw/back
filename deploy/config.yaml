@@ -48,8 +48,8 @@ configServerError: true
 
 configSendGrid:
   url: "https://api.sendgrid.com/v3"
-  apiKey: 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
-  senderIdentity: sergey.yakovlev@baranseli.ru
+  apiKey: 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
+  senderIdentity: s.iakovlev@baranseli.co.uk
   persons:
     - email: fclaw007@gmail.com
       personalization: Sergey Yakovlev
