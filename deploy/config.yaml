@@ -42,7 +42,11 @@ configTelegram:
   telegramEnv: dev
 
 configCors:
-  corsOrigins: [http://127.0.0.1:8080, http://127.0.0.1:3001]
+  corsOrigins: 
+    [ http://127.0.0.1:8080
+    , http://127.0.0.1:3001
+    , https://front-g52bgv5bua-ew.a.run.app
+    ]
 
 configServerError: true
 
