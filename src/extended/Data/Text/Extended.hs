@@ -5,10 +5,14 @@ import Test.QuickCheck.Extended
 import Database.Transaction
 import Control.Lens
 import Control.Lens.Iso.Extended
-                
+import Data.Default.Class
+
 -- | Wrapper for text in order to generate valid unicode string
 newtype UnicodeText = UnicodeText T.Text
 
 instance Arbitrary UnicodeText where arbitrary = UnicodeText <$> genText
 
 instance ParamsShow UnicodeText where render = (^.coerced.from stext)
+
+instance Default T.Text where  
+  def = mempty 
