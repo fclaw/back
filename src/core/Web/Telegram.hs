@@ -28,6 +28,7 @@ import Data.Typeable
 import Data.Functor
 import Control.Applicative
 import qualified Control.Exception as E
+import Data.Maybe (fromMaybe, isNothing)
 
 data Service =
      Service {
@@ -37,9 +38,16 @@ data Service =
 data TelegramMsg = forall a . Typeable a => TelegramMsg String a
 
 mkService :: HTTP.Manager -> Telegram -> IO Service
+mkService _ tl 
+  | isNothing (telegramBot tl) = 
+      return $ Service 
+        { sendMsg = \logger _ -> void $ logger InfoS "telegram bot isn't set.skip"
+        , sendFile = \logger _ -> void $ logger InfoS "telegram bot isn't set.skip"
+        }
 mkService mgr Telegram {..} = do
-  let url_msg = telegramHost <> telegramBot <> "/sendMessage"
-  let url_file = telegramHost <> telegramBot <> "/sendDocument"
+  let bot = fromMaybe undefined telegramBot 
+  let url_msg = telegramHost <> bot <> "/sendMessage"
+  let url_file = telegramHost <> bot <> "/sendDocument"
   req_msg <- HTTP.parseRequest $ T.unpack url_msg
   req_file <- HTTP.parseRequest $ T.unpack url_file
   let sendText logger msg =

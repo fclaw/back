@@ -15,4 +15,4 @@ instance Arbitrary UnicodeText where arbitrary = UnicodeText <$> genText
 instance ParamsShow UnicodeText where render = (^.coerced.from stext)
 
 instance Default T.Text where  
-  def = mempty 
+  def = T.pack ""

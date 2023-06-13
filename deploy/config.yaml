@@ -36,7 +36,7 @@ configMinio:
   minioLogBucket: "log"
 
 configTelegram:
-  telegramBot: bot2096396660:AAFgPJkIGmBOgbWuzvyejPJJo7-HpFgr2CY
+  telegramBot:
   telegramChat: "-934720023"
   telegramHost: https://api.telegram.org/
   telegramEnv: dev
@@ -51,9 +51,9 @@ configCors:
 configServerError: true
 
 configSendGrid:
-  url: "https://api.sendgrid.com/v3"
-  apiKey:
-  senderIdentity: s.iakovlev@baranseli.co.uk
-  persons:
+  sendGridUrl: "https://api.sendgrid.com/v3"
+  sendGridApiKey:
+  sendGridSenderIdentity: s.iakovlev@baranseli.co.uk
+  sendGridPersons:
     - email: fclaw007@gmail.com
       personalization: Sergey Yakovlev

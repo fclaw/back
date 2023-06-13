@@ -48,7 +48,7 @@ module KatipController
 
 import Scaffold.Config (SendGrid)
 
-import OpenAPI.Common (Configuration)
+import "sendgrid" OpenAPI.Common (Configuration)
 import Control.Lens
 import Control.Monad.IO.Class
 import Control.Monad.Reader
@@ -91,7 +91,7 @@ data KatipEnv =
      , katipEnvApiKeys :: ![(String, String)]
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: !Web.Telegram.Service
-     , katipEnvSendGrid :: !(SendGrid, Configuration) }
+     , katipEnvSendGrid :: !(Maybe (SendGrid, Configuration)) }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 

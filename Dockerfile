@@ -40,15 +40,25 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "./scripts/sendgrid.sh sendgrid-openapiv3.yaml . && \
+     "./scripts/api-generator.sh sendgrid-openapiv3.yaml . Sendgrid sendgrid && \
+     ./scripts/api-generator.sh sendgrid-openapiv3.yaml . Github github && \
       stack install --system-ghc --fast -j12 --test"
 
 FROM base as main
+
+ARG sendgrid_key
+ARG telegram_bot_key
+
+RUN echo \
+"sendgridKey: $sendgrid_key\n"\
+"telegramBotKey: $telegram_bot_key \n"\
+> env.yaml
 
 EXPOSE 12000/tcp
 
 WORKDIR /server
 
+COPY env.yaml /server
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin
 COPY --from=server-build --chown=nix:nix /build/deploy /server/deploy
 COPY --from=server-build --chown=nix:nix /build/migration /server/migration

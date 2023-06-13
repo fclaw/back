@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 module SendGrid (configure) where 
 
-import OpenAPI.Configuration
-import OpenAPI.Common (Configuration (..))
+import "sendgrid" OpenAPI.Configuration
+import "sendgrid" OpenAPI.Common (Configuration (..))
 import qualified Data.Text as T
-import OpenAPI.SecuritySchemes
+import "sendgrid" OpenAPI.SecuritySchemes
 
 type BaseUrl = T.Text
 type ApiKey = T.Text

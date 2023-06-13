@@ -11,6 +11,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 
 module Main (main) where
 
@@ -57,6 +58,8 @@ import Text.ParserCombinators.ReadPrec (pfail)
 import System.Directory (createDirectoryIfMissing)
 import qualified SendGrid as SendGrid
 import Control.Applicative ((<|>))
+import Data.Traversable (for)
+import System.Directory (doesFileExist)
 
 data PrintCfg = Y | N deriving stock (Generic)
 
@@ -89,6 +92,7 @@ data Cmd w =
      , serverPort :: w ::: Maybe Int <?> "server port"
      , cfgAdminStoragePath :: w ::: FilePath <?> "admin storage"
      , printCfg :: w ::: Maybe PrintCfg  <?> "whether config be printed"
+     , envPath :: w ::: Maybe FilePath <?> "file for storing sensitive data. it's used only in deployment"
      } deriving stock Generic
 
 deriving instance Show (Cmd Unwrapped)
@@ -125,8 +129,22 @@ toSnake = map toLower . concat . underscores . splitR isUpper
 main :: IO ()
 main = do
   cmd@Cmd {..} <- unwrapRecord "scaffold"
+  print "------ Cmd: start ------"
   pPrint cmd 
-  rawCfg <- Scaffold.Config.load cfgPath
+  print "------ Cmd: end ------"
+
+  -- at this initialisation step we have to obtain sensitive data from env 
+  envKeys <- fmap join $ for envPath $ \path -> do 
+    cond <- doesFileExist path
+    if cond then
+      fmap Just $ Scaffold.Config.load @EnvKeys path
+    else return Nothing  
+
+  print "------ EnvKeys: start ------"
+  pPrint envKeys
+  print "------ EnvKeys: end ------"
+
+  rawCfg <- Scaffold.Config.load @Scaffold.Config.Config cfgPath
   let cfg =
         rawCfg
         & db.host %~ (`fromMaybe` localhost)
@@ -137,7 +155,16 @@ main = do
         & swagger.host %~ (`fromMaybe` swaggerHost)
         & swagger.port %~ (flip (<|>) swaggerPort)
         & serverConnection.port %~ (`fromMaybe` serverPort)
-  for_ printCfg $ \case Y -> pPrint cfg; N -> pure ()
+        & Scaffold.Config.sendGrid.apiKey %~ (flip (<|>) (join $ fmap envKeysSendgrid envKeys))
+
+  for_ printCfg $ 
+    \case Y -> 
+            do print "------ Cfg: start ------"
+               pPrint cfg
+               print "------ Cfg: end ------" 
+          N -> pure ()
+
+  -- at this initialisation step we have to put sensitive data into the config
 
   term <- hGetTerm stdout
   hSetBuffering stdout NoBuffering
@@ -208,7 +235,7 @@ main = do
      (cfg^.Scaffold.Config.minio.secretKey))
     (fromString (cfg^.Scaffold.Config.minio.host <> ":" <> cfg^.Scaffold.Config.minio.port))
 
-  telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram)
+  telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram & bot %~ (flip (<|>) (join $ fmap envKeysTelegramBot envKeys)))
 
   minioScribe <- 
     mkMinioScribe minioEnv 
@@ -222,10 +249,10 @@ main = do
         registerScribe "minio" minioScribe defaultScribeSettings env''
 
   let s@Scaffold.Config.SendGrid {..} = cfg^.Scaffold.Config.sendGrid
-  let sendgrid = SendGrid.configure url apiKey
+  let sendgrid = fmap ((s,) . SendGrid.configure sendGridUrl) sendGridApiKey
 
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram (s, sendgrid)
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp

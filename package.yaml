@@ -195,6 +195,7 @@ library:
     - websockets
     - aeson-pretty
     - sendgrid
+    - github
 
   source-dirs:
     - src/core

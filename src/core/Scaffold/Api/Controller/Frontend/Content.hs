@@ -37,22 +37,22 @@ newtype Home = Home T.Text
   deriving stock Generic
   deriving newtype (ToJSON, FromJSON)
 
-instance ToSchema Home
 instance Default Home
+instance ToSchema Home
 
 newtype About = About T.Text
   deriving stock Generic
   deriving newtype (ToJSON, FromJSON)
   
-instance ToSchema About
 instance Default About
+instance ToSchema About
 
-newtype Service = Service Service
+newtype Service = Service T.Text
   deriving stock Generic
   deriving newtype (ToJSON, FromJSON)
   
-instance ToSchema Service
 instance Default Service
+instance ToSchema Service
 
 data Content = 
      Content 
@@ -65,18 +65,20 @@ data Content =
      '[ FieldLabelModifier '[ UserDefined (StripConstructor Content)]] 
      Content
 
+instance Default Content
+
 instance ToSchema Content where
   declareNamedSchema _ = do
-    homeSchema <- declareSchemaRef (Proxy @Home)
-    aboutSchema <- declareSchemaRef (Proxy @About)
-    servSchema <- declareSchemaRef (Proxy @Service)
+    home <- declareSchemaRef (Proxy @Home)
+    about <- declareSchemaRef (Proxy @About)
+    service <- declareSchemaRef (Proxy @Service)
     pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Content))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ 
            fromList [ 
-            ("home", homeSchema)
-          , ("about", aboutSchema)
-          , ("service", servSchema) ]
+            ("home", home)
+          , ("about", about)
+          , ("service", service) ]
 
 controller :: KatipControllerM (Response Content)
-controller = undefined
+controller = return $ Ok def

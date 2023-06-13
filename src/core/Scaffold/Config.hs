@@ -24,11 +24,13 @@ module Scaffold.Config
        , Personalization (..)
        , SendGrid (..)
        , Email (..)
+       , EnvKeys (..)
        , db
        , pass
        , port
        , database
        , host
+       , apiKey
        , user
        , poolN
        , tm
@@ -124,7 +126,7 @@ data Minio =
 
 data Telegram =
      Telegram
-     { telegramBot  :: !T.Text
+     { telegramBot  :: !(Maybe T.Text)
      , telegramChat :: !T.Text
      , telegramHost :: !T.Text
      , telegramEnv  :: !Env
@@ -156,17 +158,12 @@ data Personalization = Personalization { email :: !Email, personalization :: !T.
   
 data SendGrid =
      SendGrid 
-     { url :: !T.Text
-     , apiKey :: !T.Text
-     , persons :: ![Personalization]
-     , senderIdentity :: !Email 
+     { sendGridUrl :: !T.Text
+     , sendGridApiKey :: !(Maybe T.Text)
+     , sendGridPersons :: ![Personalization]
+     , sendGridSenderIdentity :: !Email 
      }
-  deriving stock Generic
   deriving stock Show
-  deriving FromJSON
-    via WithOptions 
-    '[ FieldLabelModifier '[ UserDefined (StripConstructor SendGrid)]] 
-    SendGrid
 
 data Config =
      Config
@@ -205,9 +202,22 @@ deriveFromJSON defaultOptions ''Telegram
 deriveFromJSON defaultOptions ''ServerConnection
 deriveFromJSON defaultOptions ''Cors
 deriveFromJSON defaultOptions ''Swagger
+deriveFromJSON defaultOptions ''SendGrid
 deriveFromJSON defaultOptions ''Config
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
-load :: FilePath -> IO Config
+load :: FromJSON a => FilePath -> IO a
 load path = decodeFileEither path >>= either throwIO pure
+
+data EnvKeys = 
+     EnvKeys 
+     { envKeysSendgrid :: !(Maybe T.Text)
+     , envKeysTelegramBot :: !(Maybe T.Text) }
+  deriving stock Generic
+  deriving stock Show
+  deriving FromJSON
+    via WithOptions
+    '[ FieldLabelModifier '[ UserDefined (StripConstructor EnvKeys)]] 
+    EnvKeys
+
