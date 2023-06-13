@@ -196,6 +196,8 @@ library:
     - aeson-pretty
     - sendgrid
     - github
+    - lifted-async
+    - http-conduit
 
   source-dirs:
     - src/core

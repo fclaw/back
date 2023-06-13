@@ -85,7 +85,7 @@ controller :: Request -> KatipControllerM (Response ())
 controller req@Request {..} = do
   $(logTM) InfoS $ logStr (show req)
   cfg <- fmap (^.katipEnv.sendGrid) ask
-  resp <- for cfg $ \(SendGrid {..}, sendgridCfg) -> do
+  resp <- for cfg $ \(SendGrid {..}, sendgrid) -> do
     tm <- fmap (fromIntegral . systemSeconds) $ liftIO $ getSystemTime
     let reqBody = 
           mkPOST_mail_sendRequestBody 
@@ -105,7 +105,7 @@ controller req@Request {..} = do
           ]
           subject
     $(logTM) InfoS $ logStr (show (encodePretty reqBody))      
-    resp <- liftIO $ runWithConfiguration sendgridCfg (pOST_mail_send (Just reqBody))
+    resp <- liftIO $ runWithConfiguration sendgrid (pOST_mail_send (Just reqBody))
     let handleResp resp =
           if responseStatus resp == ok200 || 
             responseStatus resp == accepted202 

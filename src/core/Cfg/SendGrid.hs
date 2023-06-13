@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 
-module SendGrid (configure) where 
+module Cfg.SendGrid (configure) where 
 
 import "sendgrid" OpenAPI.Configuration
 import "sendgrid" OpenAPI.Common (Configuration (..))

@@ -56,7 +56,8 @@ import qualified Text.Read.Lex as L
 import GHC.Read
 import Text.ParserCombinators.ReadPrec (pfail)
 import System.Directory (createDirectoryIfMissing)
-import qualified SendGrid as SendGrid
+import qualified Cfg.SendGrid as SendGrid
+import qualified Cfg.Github as Github
 import Control.Applicative ((<|>))
 import Data.Traversable (for)
 import System.Directory (doesFileExist)
@@ -251,8 +252,10 @@ main = do
   let s@Scaffold.Config.SendGrid {..} = cfg^.Scaffold.Config.sendGrid
   let sendgrid = fmap ((s,) . SendGrid.configure sendGridUrl) sendGridApiKey
 
+  let github = fmap Github.configure $ join (fmap envKeysGithub envKeys)
+
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid (join (fmap envKeysGithub envKeys))
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid github
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp
