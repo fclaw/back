@@ -56,7 +56,7 @@ WORKDIR /server
 RUN echo \
 "sendgridKey: $sendgrid_key\n"\
 "telegramBotKey: $telegram_bot_key \n"\
-> env.yaml
+> /server/env.yaml
 
 COPY env.yaml /server
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin
