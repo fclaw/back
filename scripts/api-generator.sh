@@ -6,7 +6,7 @@ package=$3
 dir=$4
 
 openapi3-code-generator-exe \
-  -f -o $dir/src/foreign/$mn \
+  -f -o $dir/src/foreign/$nm \
   --package-name $package \
   --property-type-suffix github \
   --generate-optional-empty-request-body=false $file && \
