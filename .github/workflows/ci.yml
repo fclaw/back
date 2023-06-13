@@ -48,7 +48,9 @@ jobs:
         uses: docker/build-push-action@v4.0.0
         with:
           build-args: |
-            sendgrid_key=$SENDGRID_KEY
+            sendgrid_key=${{ vars.SENDGRID_KEY }}
+            telegram_bot_key=${{ vars.TELEGRAM_BOT_KEY }}
+            github_key=${{ vars.REPO_GITHUB_KEY }}
           context: .
           file: ./Dockerfile
           push: true
@@ -98,6 +100,7 @@ jobs:
           build-args: |
             sendgrid_key=${{ vars.SENDGRID_KEY }}
             telegram_bot_key=${{ vars.TELEGRAM_BOT_KEY }}
+            github_key=${{ vars.REPO_GITHUB_KEY }}
           context: .
           file: ./Dockerfile
           push: true
