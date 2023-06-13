@@ -49,14 +49,14 @@ FROM base as main
 ARG sendgrid_key
 ARG telegram_bot_key
 
+EXPOSE 12000/tcp
+
+WORKDIR /server
+
 RUN echo \
 "sendgridKey: $sendgrid_key\n"\
 "telegramBotKey: $telegram_bot_key \n"\
 > env.yaml
-
-EXPOSE 12000/tcp
-
-WORKDIR /server
 
 COPY env.yaml /server
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin
