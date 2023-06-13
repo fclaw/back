@@ -52,7 +52,7 @@ configServerError: true
 
 configSendGrid:
   url: "https://api.sendgrid.com/v3"
-  apiKey: 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
+  apiKey:
   senderIdentity: s.iakovlev@baranseli.co.uk
   persons:
     - email: fclaw007@gmail.com
