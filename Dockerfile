@@ -40,7 +40,7 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       nix-shell ./nix/build.nix \
      --log-format bar-with-logs \ 
      --verbose --command \ 
-     "./scripts/api-generator.sh sendgrid-openapiv3.yaml Sendgrid sendgrid . && \
+     "./scripts/api-generator.sh sendgrid-openapiv3.yaml SendGrid sendgrid . && \
      ./scripts/api-generator.sh github-openapiv3.yaml Github github . && \
       stack install --system-ghc --fast -j12 --test"
 
