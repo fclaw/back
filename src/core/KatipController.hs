@@ -44,6 +44,7 @@ module KatipController
          -- * aux
       , runTelegram
       , sendGrid
+      , github
        ) where
 
 import Scaffold.Config (SendGrid)
@@ -91,7 +92,8 @@ data KatipEnv =
      , katipEnvApiKeys :: ![(String, String)]
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: !Web.Telegram.Service
-     , katipEnvSendGrid :: !(Maybe (SendGrid, Configuration)) }
+     , katipEnvSendGrid :: !(Maybe (SendGrid, Configuration)) 
+     , katipEnvGithub :: !(Maybe T.Text) }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 

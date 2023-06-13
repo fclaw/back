@@ -213,7 +213,8 @@ load path = decodeFileEither path >>= either throwIO pure
 data EnvKeys = 
      EnvKeys 
      { envKeysSendgrid :: !(Maybe T.Text)
-     , envKeysTelegramBot :: !(Maybe T.Text) }
+     , envKeysTelegramBot :: !(Maybe T.Text)
+     , envKeysGithub :: !(Maybe T.Text) }
   deriving stock Generic
   deriving stock Show
   deriving FromJSON

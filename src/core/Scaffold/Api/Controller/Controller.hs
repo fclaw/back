@@ -42,7 +42,6 @@ import System.Info
 import Data.Time.Clock.System (getSystemTime, systemSeconds)
 import Data.Version (showVersion)
 
-
 controller :: Api (AsServerT KatipControllerM)
 controller = Api { _apiHttp = toServant . httpApi  }
 
@@ -62,8 +61,8 @@ httpApi _ =
               wwwAuthenticatedErr 
               "only for authorized personnel" 
   , _httpApiPublic = toServant public
-  , _httpApiSendGrid = toServant sendgrid   
-  }
+  , _httpApiForeign = 
+      toServant (ForeignApi { _foreignApiSendGrid = toServant sendgrid } :: ForeignApi (AsServerT KatipControllerM)) }
 
 file :: FileApi (AsServerT KatipControllerM)
 file =

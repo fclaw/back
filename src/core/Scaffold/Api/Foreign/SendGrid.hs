@@ -6,7 +6,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedLabels #-}
 
-module Scaffold.Api.SendGrid (SendGridApi (..)) where
+module Scaffold.Api.Foreign.SendGrid (SendGridApi (..)) where
 
 import Scaffold.Api.Controller.SendGrid.SendMail (Request)
 import Scaffold.Transport.Response ( Response )

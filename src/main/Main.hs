@@ -252,7 +252,7 @@ main = do
   let sendgrid = fmap ((s,) . SendGrid.configure sendGridUrl) sendGridApiKey
 
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid (join (fmap envKeysGithub envKeys))
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp
