@@ -58,7 +58,6 @@ RUN echo \
 "telegramBotKey: $telegram_bot_key \n"\
 > /server/env.yaml
 
-COPY env.yaml /server
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin
 COPY --from=server-build --chown=nix:nix /build/deploy /server/deploy
 COPY --from=server-build --chown=nix:nix /build/migration /server/migration
