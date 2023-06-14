@@ -16,7 +16,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Scaffold.Api.Controller.Frontend.Content (controller, Content) where
+module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
 import Scaffold.Transport.Response
 
@@ -97,7 +97,13 @@ instance ToSchema Content where
           , ("about", about)
           , ("service", service) ]
 
-controller :: KatipControllerM (Response Content)
+newtype Init = Init Content
+  deriving stock Generic
+  deriving newtype (ToJSON, FromJSON)
+
+instance ToSchema Init
+
+controller :: KatipControllerM (Response Init)
 controller = do 
   cfg <- fmap (^.katipEnv.github) ask
   resp <- for cfg $ \github -> do
@@ -106,7 +112,7 @@ controller = do
     case res of
       Right [homeCnt, aboutCnt, serviceCnt] -> 
         return $ 
-          Ok def { 
+          Ok $ Init def { 
             home = Home homeCnt
           , about = About aboutCnt
           , service = Service serviceCnt }
@@ -114,7 +120,7 @@ controller = do
         $(logTM) ErrorS (logStr ("Github error: " <> err))
         $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  return $ fromMaybe (Ok def) resp
+  return $ fromMaybe (Ok (Init def)) resp
 
 handleResp resp =
     if responseStatus resp == ok200 || 

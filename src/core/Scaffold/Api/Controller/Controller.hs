@@ -18,7 +18,7 @@ import qualified Scaffold.Api.Controller.File.Download as File.Download
 import qualified Scaffold.Api.Controller.File.Delete as File.Delete
 import qualified Scaffold.Api.Controller.File.Patch as File.Patch
 import qualified Scaffold.Api.Controller.Frontend.Log as Frontend.Log
-import qualified Scaffold.Api.Controller.Frontend.Content as Frontend.Content
+import qualified Scaffold.Api.Controller.Frontend.Init as Frontend.Init
 import qualified Scaffold.Api.Controller.SendGrid.SendMail as SendGrid.Send 
 import Servant.RawM.Server ()
 import Scaffold.Auth
@@ -116,8 +116,8 @@ frontend =
   , _frontendApiContent =
     flip logExceptionM ErrorS
     (katipAddNamespace
-    (Namespace ["frontend", "content"])
-    Frontend.Content.controller) }
+    (Namespace ["frontend", "init"])
+    Frontend.Init.controller) }
 
 user :: User -> UserApi (AsServerT KatipControllerM) 
 user _ =

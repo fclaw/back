@@ -9,7 +9,7 @@
 module Scaffold.Api.Frontend (FrontendApi (..)) where
 
 import Scaffold.Api.Controller.Frontend.Log (Request)
-import Scaffold.Api.Controller.Frontend.Content (Content)
+import Scaffold.Api.Controller.Frontend.Init (Init)
 
 import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
 import Servant.API.Extended ( Put, Get, type (:>), JSON, ReqBody )
@@ -24,6 +24,6 @@ data FrontendApi route =
       :> Put '[JSON] (Response ())
     , _frontendApiContent
       :: route
-      :- "content"
-      :> Get '[JSON] (Response Content)
+      :- "init"
+      :> Get '[JSON] (Response Init)
     } deriving stock Generic
