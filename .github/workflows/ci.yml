@@ -100,7 +100,8 @@ jobs:
           build-args: |
             sendgrid_key=${{ vars.SENDGRID_KEY }}
             telegram_bot_key=${{ vars.TELEGRAM_BOT_KEY }}
-            github_key=${{ vars.REPO_GITHUB_KEY }}
+            github_tth_docs_key=${{ vars.REPO_GITHUB_KEY_TTH_DOCS }}
+            github_tth_main_key=${{ vars.REPO_GITHUB_KEY_TTH_MAIN }}
           context: .
           file: ./Dockerfile
           push: true

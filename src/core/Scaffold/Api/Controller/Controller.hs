@@ -113,7 +113,7 @@ frontend =
     katipAddNamespace
     (Namespace ["frontend", "log"]) 
     (Frontend.Log.controller req)
-  , _frontendApiContent =
+  , _frontendApiInit =
     flip logExceptionM ErrorS
     (katipAddNamespace
     (Namespace ["frontend", "init"])

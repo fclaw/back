@@ -24,7 +24,6 @@ module Scaffold.Config
        , Personalization (..)
        , SendGrid (..)
        , Email (..)
-       , EnvKeys (..)
        , db
        , pass
        , port
@@ -209,16 +208,4 @@ deriveFromJSON defaultOptions ''Config
 -- raise YamlException and terminate program.
 load :: FromJSON a => FilePath -> IO a
 load path = decodeFileEither path >>= either throwIO pure
-
-data EnvKeys = 
-     EnvKeys 
-     { envKeysSendgrid :: !(Maybe T.Text)
-     , envKeysTelegramBot :: !(Maybe T.Text)
-     , envKeysGithub :: !(Maybe T.Text) }
-  deriving stock Generic
-  deriving stock Show
-  deriving FromJSON
-    via WithOptions
-    '[ FieldLabelModifier '[ UserDefined (StripConstructor EnvKeys)]] 
-    EnvKeys
 

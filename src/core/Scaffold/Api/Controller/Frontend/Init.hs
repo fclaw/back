@@ -19,10 +19,13 @@
 module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
 import Scaffold.Transport.Response
+import Scaffold.EnvKeys (repo, resources)
 
 import OpenAPI.Operations.Repos_get_content
+import OpenAPI.Operations.Git_get_ref
 import OpenAPI.Types.ContentFile
 import "github" OpenAPI.Common
+import OpenAPI.Types.GitRef 
 
 import Katip
 import KatipController hiding (Service)
@@ -49,6 +52,7 @@ import Network.HTTP.Types.Status (ok200, accepted202)
 import Data.Functor (($>))
 import Data.ByteString.Base64 (decodeLenient)
 import Control.Lens.Iso.Extended (textbs)
+import qualified Data.Map as Map
 
 newtype Home = Home T.Text
   deriving stock Generic
@@ -97,32 +101,61 @@ instance ToSchema Content where
           , ("about", about)
           , ("service", service) ]
 
-newtype Init = Init Content
+data Init = Init { content :: !Content, shaCommit :: !T.Text }
   deriving stock Generic
-  deriving newtype (ToJSON, FromJSON)
+  deriving (ToJSON, FromJSON)
+     via WithOptions 
+     '[ FieldLabelModifier '[ UserDefined (StripConstructor Init)]] 
+     Init
 
-instance ToSchema Init
+instance Default Init
+
+instance ToSchema Init where
+  declareNamedSchema _ = do
+    content <- declareSchemaRef (Proxy @Content)
+    text <- declareSchemaRef (Proxy @T.Text)
+    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Init))^.stext)) $ mempty
+         & type_ ?~ SwaggerObject
+         & properties .~ 
+           fromList [ 
+            ("content", content)
+          , ("shaCommit", text) ]
 
 controller :: KatipControllerM (Response Init)
 controller = do 
   cfg <- fmap (^.katipEnv.github) ask
-  resp <- for cfg $ \github -> do
-    resp <- forConcurrently reqXs (liftIO . runWithConfiguration github . repos_get_content)
-    let res = sequence $ map handleResp resp
-    case res of
-      Right [homeCnt, aboutCnt, serviceCnt] -> 
-        return $ 
-          Ok $ Init def { 
-            home = Home homeCnt
-          , about = About aboutCnt
-          , service = Service serviceCnt }
+  resp <- for cfg $ \repoXs -> do
+    -- frontDocs
+    let docs_repo = repoXs Map.! "frontDocs"
+    resp_frontDocs <- 
+      forConcurrently 
+      (reqXs (repo (snd docs_repo)) (resources (snd docs_repo))) 
+      (liftIO . runWithConfiguration (fst docs_repo) . repos_get_content)
+    let res_docs_repo = sequence $ map handleRespDocs resp_frontDocs
+    
+    -- front
+    let front_repo = repoXs Map.! "front"
+    resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef (repo (snd front_repo)))
+    
+    let mkInit = do
+          [homeCnt, aboutCnt, serviceCnt] <- res_docs_repo
+          shaCommit <- resp_front
+          pure $ 
+            Init (def { 
+                home = Home homeCnt
+              , about = About aboutCnt
+              , service = Service serviceCnt })
+              shaCommit
+
+    case mkInit of
+      Right init -> return $ Ok init 
       Left err ->
         $(logTM) ErrorS (logStr ("Github error: " <> err))
         $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  return $ fromMaybe (Ok (Init def)) resp
+  return $ fromMaybe (Ok (Init def def)) resp
 
-handleResp resp =
+handleRespDocs resp =
     if responseStatus resp == ok200 || 
       responseStatus resp == accepted202 
     then let mkResp 
@@ -136,4 +169,15 @@ handleResp resp =
          in  mkResp $ responseBody resp
     else Left $ show (responseBody resp)^.stext
 
-reqXs = map (flip (mkRepos_get_contentParameters "fclaw") "turkish-trade-house-docs") ["home.txt", "about.txt", "services.txt"]
+handleRespFront resp = 
+    if responseStatus resp == ok200 || 
+       responseStatus resp == accepted202
+    then let mkResp 
+               (Git_get_refResponse200 (
+                 Git_ref {git_refObject = Git_refObjectgithub {..}})) 
+               = Right git_refObjectgithubSha
+         in  mkResp $ responseBody resp
+    else Left $ show (responseBody resp)^.stext
+
+reqXs repo = map (flip (mkRepos_get_contentParameters "fclaw") repo)
+mkGitRef = mkGit_get_refParameters "fclaw" "heads/master"

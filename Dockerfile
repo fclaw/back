@@ -48,7 +48,8 @@ FROM base as main
 
 ARG sendgrid_key
 ARG telegram_bot_key
-ARG github_key
+ARG github_tth_docs_key
+ARG github_tth_main_key
 
 EXPOSE 12000/tcp
 
@@ -57,7 +58,15 @@ WORKDIR /server
 RUN echo \
 "envKeysSendgrid: $sendgrid_key\n"\
 "envKeysTelegramBot: $telegram_bot_key\n"\
-"envKeysGithub: $github_key\n"\
+"envKeysGithub:\n"\
+"   frontDocs:\n"\
+"      repo: turkish-trade-house-docs\n"\ 
+"      key: $github_tth_docs_key\n"\
+"      resources: [home.txt, about.txt, services.txt]\n"\
+"   front:\n"\
+"      repo: turkish-trade-house\n"\ 
+"      key: $github_tth_main_key\n"\
+"      resources: []\n"\
 > /server/env.yaml
 
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin

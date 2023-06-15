@@ -48,7 +48,6 @@ import Data.String
 import System.IO
 import qualified Telegram
 import Data.Time.Clock.System
-import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Foldable (for_)
@@ -62,6 +61,9 @@ import qualified Cfg.Github as Github
 import Control.Applicative ((<|>))
 import Data.Traversable (for)
 import System.Directory (doesFileExist)
+import qualified Data.Map as Map
+import qualified Data.Map.Lazy as MapLazy
+import Data.Coerce (coerce)
 
 data PrintCfg = Y | N deriving stock (Generic)
 
@@ -253,7 +255,11 @@ main = do
   let s@Scaffold.Config.SendGrid {..} = cfg^.Scaffold.Config.sendGrid
   let sendgrid = fmap ((s,) . SendGrid.configure sendGridUrl) sendGridApiKey
 
-  let github = fmap Github.configure $ join (fmap envKeysGithub envKeys)
+  let github = do 
+        k <- envKeys
+        creds_old <- fmap coerce $ envKeysGithub k 
+        let cred_new = flip MapLazy.map creds_old $ \x -> (Github.configure (Scaffold.EnvKeys.key x), x)
+        return cred_new;
 
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
   let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid github

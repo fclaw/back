@@ -82,6 +82,8 @@ import Language.Haskell.TH.Syntax
 import Control.Concurrent.STM.TChan
 import Control.Concurrent.STM
 import Data.Typeable
+import Scaffold.EnvKeys 
+import qualified Data.Map as M
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 type KatipLoggerLocIO = Maybe Loc -> Severity -> LogStr -> IO ()
@@ -95,7 +97,7 @@ data KatipEnv =
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: !Telegram.Service
      , katipEnvSendGrid :: !(Maybe (SendGrid, SendGrid.Configuration)) 
-     , katipEnvGithub :: !(Maybe Github.Configuration) }
+     , katipEnvGithub :: !(Maybe (M.Map T.Text (Github.Configuration, Creds))) }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 

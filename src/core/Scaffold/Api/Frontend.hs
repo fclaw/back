@@ -22,7 +22,7 @@ data FrontendApi route =
       :- "log"
       :> ReqBody '[JSON] Request
       :> Put '[JSON] (Response ())
-    , _frontendApiContent
+    , _frontendApiInit
       :: route
       :- "init"
       :> Get '[JSON] (Response Init)
