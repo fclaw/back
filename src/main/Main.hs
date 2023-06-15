@@ -17,6 +17,7 @@ module Main (main) where
 
 import qualified Scaffold.Application as App
 import Scaffold.Config
+import Scaffold.EnvKeys
 import Scaffold.Auth (User (User))
 
 import Katip.Scribes.Minio (mkMinioScribe)
@@ -45,7 +46,7 @@ import Control.Exception
 import qualified Network.Minio as Minio
 import Data.String
 import System.IO
-import qualified Web.Telegram
+import qualified Telegram
 import Data.Time.Clock.System
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -236,7 +237,7 @@ main = do
      (cfg^.Scaffold.Config.minio.secretKey))
     (fromString (cfg^.Scaffold.Config.minio.host <> ":" <> cfg^.Scaffold.Config.minio.port))
 
-  telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram & bot %~ (flip (<|>) (join $ fmap envKeysTelegramBot envKeys)))
+  telegram <- Telegram.mkService manager (cfg^.Scaffold.Config.telegram & bot %~ (flip (<|>) (join $ fmap envKeysTelegramBot envKeys)))
 
   minioScribe <- 
     mkMinioScribe minioEnv 

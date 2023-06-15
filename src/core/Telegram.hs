@@ -6,7 +6,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Web.Telegram (Service (..), mkService, TelegramMsg (..), runMsgDeliver, File (..)) where
+module Telegram (Service (..), mkService, TelegramMsg (..), runMsgDeliver, File (..)) where
 
 import Scaffold.Config (Telegram (..), Env (..))
 

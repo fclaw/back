@@ -38,7 +38,7 @@ module KatipController
        , runKatipController
          -- * re-export
        , module R
-       , module Web.Telegram
+       , module Telegram
          -- * katip
        , askLoggerIO
          -- * aux
@@ -76,7 +76,7 @@ import Control.Monad.RWS.Class
 import qualified Network.Minio as Minio
 import qualified Data.Text as T
 import qualified Hasql.Connection as Hasql
-import Web.Telegram
+import Telegram
 import Pretty
 import Language.Haskell.TH.Syntax
 import Control.Concurrent.STM.TChan
@@ -93,7 +93,7 @@ data KatipEnv =
      , katipEnvHttpReqManager :: !Manager
      , katipEnvApiKeys :: ![(String, String)]
      , katipEnvMinio :: !Minio
-     , katipEnvTelegram :: !Web.Telegram.Service
+     , katipEnvTelegram :: !Telegram.Service
      , katipEnvSendGrid :: !(Maybe (SendGrid, SendGrid.Configuration)) 
      , katipEnvGithub :: !(Maybe Github.Configuration) }
 
