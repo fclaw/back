@@ -10,9 +10,10 @@ module Scaffold.Api.Frontend (FrontendApi (..)) where
 
 import Scaffold.Api.Controller.Frontend.Log (Request)
 import Scaffold.Api.Controller.Frontend.Init (Init)
+import Scaffold.Api.Controller.Frontend.Translate hiding (controller)
 
-import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
-import Servant.API.Extended ( Put, Get, type (:>), JSON, ReqBody )
+import Servant.API.Generic ( Generic )
+import Servant.API.Extended
 import Scaffold.Transport.Response ( Response )
 
 data FrontendApi route =
@@ -26,4 +27,10 @@ data FrontendApi route =
       :: route
       :- "init"
       :> Get '[JSON] (Response Init)
+    , _frontendApiTranslate
+      :: route
+      :- "translate"
+      :> Capture "page" Page
+      :> Capture "lang" Lang
+      :> Get '[JSON] (Response Translation)
     } deriving stock Generic

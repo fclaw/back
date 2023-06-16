@@ -118,7 +118,7 @@ instance Lift ParamSchemaEnumCon where
   lift _ = error "unsupported constructor"
   liftTyped = undefined
 
-mkParamSchemaEnum :: Name -> Q Exp-> Q [Dec]
+mkParamSchemaEnum :: Name -> Q Exp -> Q [Dec]
 mkParamSchemaEnum name iso = do
   r <- reify name
   TyConI (DataD _ _ _ _ old_xs _) <- reify name
