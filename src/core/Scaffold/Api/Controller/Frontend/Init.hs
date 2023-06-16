@@ -16,7 +16,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
+module Scaffold.Api.Controller.Frontend.Init (controller, handleRespDocs, Init) where
 
 import Scaffold.Transport.Response
 import Scaffold.EnvKeys (repo, resources)
@@ -53,6 +53,7 @@ import Data.Functor (($>))
 import Data.ByteString.Base64 (decodeLenient)
 import Control.Lens.Iso.Extended (textbs)
 import qualified Data.Map as Map
+import qualified Network.HTTP.Client as HTTP
 
 newtype Home = Home T.Text
   deriving stock Generic
@@ -155,6 +156,7 @@ controller = do
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
   return $ fromMaybe (Ok (Init def def)) resp
 
+handleRespDocs :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
 handleRespDocs resp =
     if responseStatus resp == ok200 || 
       responseStatus resp == accepted202 
