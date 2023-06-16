@@ -102,6 +102,7 @@ jobs:
             telegram_bot_key=${{ vars.TELEGRAM_BOT_KEY }}
             github_tth_docs_key=${{ vars.REPO_GITHUB_KEY_TTH_DOCS }}
             github_tth_main_key=${{ vars.REPO_GITHUB_KEY_TTH_MAIN }}
+            github_tth_css=${{ vars.REPO_GITHUB_KEY_TTH_CSS }}
           context: .
           file: ./Dockerfile
           push: true

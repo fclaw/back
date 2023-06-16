@@ -102,7 +102,12 @@ instance ToSchema Content where
           , ("about", about)
           , ("service", service) ]
 
-data Init = Init { content :: !Content, shaCommit :: !T.Text }
+data Init = 
+     Init 
+     { content :: !Content
+     , shaCommit :: !T.Text
+     , shaCommitCss :: !T.Text 
+     }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
      via WithOptions 
@@ -136,17 +141,23 @@ controller = do
     
     -- front
     let front_repo = repoXs Map.! "front"
-    resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef (repo (snd front_repo)))
+    resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef "master" (repo (snd front_repo)))
     
+    -- css
+    let css_repo = repoXs Map.! "frontCSS"
+    resp_css <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst css_repo) $ git_get_ref (mkGitRef "main" (repo (snd css_repo)))
+
     let mkInit = do
           [homeCnt, aboutCnt, serviceCnt] <- res_docs_repo
           shaCommit <- resp_front
+          shaCommitCss <- resp_css
           pure $ 
             Init (def { 
                 home = Home homeCnt
               , about = About aboutCnt
               , service = Service serviceCnt })
               shaCommit
+              shaCommitCss
 
     case mkInit of
       Right init -> return $ Ok init 
@@ -154,7 +165,7 @@ controller = do
         $(logTM) ErrorS (logStr ("Github error: " <> err))
         $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  return $ fromMaybe (Ok (Init def def)) resp
+  return $ fromMaybe (Ok (Init def def def)) resp
 
 handleRespDocs :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
 handleRespDocs resp =
@@ -182,4 +193,4 @@ handleRespFront resp =
     else Left $ show (responseBody resp)^.stext
 
 reqXs repo = map (flip (mkRepos_get_contentParameters "fclaw") repo)
-mkGitRef = mkGit_get_refParameters "fclaw" "heads/master"
+mkGitRef branch = mkGit_get_refParameters "fclaw" ("heads/" <> branch)

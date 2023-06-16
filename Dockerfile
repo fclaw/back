@@ -50,6 +50,7 @@ ARG sendgrid_key
 ARG telegram_bot_key
 ARG github_tth_docs_key
 ARG github_tth_main_key
+ARG github_tth_css
 
 EXPOSE 12000/tcp
 
@@ -66,6 +67,10 @@ RUN echo \
 "   front:\n"\
 "      repo: turkish-trade-house\n"\ 
 "      key: $github_tth_main_key\n"\
+"      resources: []\n"\
+"   frontCSS:\n"\
+"      repo: turkish-trade-house-style-and-css\n"\
+"      key: $github_tth_css\n"\
 "      resources: []\n"\
 > /server/env.yaml
 
