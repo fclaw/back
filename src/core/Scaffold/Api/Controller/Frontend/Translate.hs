@@ -6,16 +6,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module Scaffold.Api.Controller.Frontend.Translate (controller, Lang (..), Page (..), Translation) where
+module Scaffold.Api.Controller.Frontend.Translate (controller, handleResp, Lang (..), Page (..), Translation) where
 
 
 import Scaffold.Transport.Response
-import Scaffold.Api.Controller.Frontend.Init (handleRespDocs)
 import Scaffold.EnvKeys (repo)
 
 import OpenAPI.Operations.Repos_get_content
 import "github" OpenAPI.Common
+import OpenAPI.Types.ContentFile
 
 import Katip
 import TH.Mk
@@ -31,12 +32,26 @@ import Data.Traversable (for)
 import Data.Maybe (isNothing)
 import Control.Monad (when)
 import Control.Monad.IO.Class
+import qualified Network.HTTP.Client as HTTP
+import Network.HTTP.Client (responseStatus, responseBody)
+import Network.HTTP.Types.Status (ok200, accepted202)
+import Data.ByteString.Base64 (decodeLenient)
+import Control.Lens.Iso.Extended (textbs)
+import Data.Default.Class
 
 data Lang = English | Turkish
   deriving stock Generic
+  deriving Enum
 
-data Page = Home
+instance Default Lang where 
+  def = English
+
+data Page = Home | About | Service
   deriving stock Generic
+  deriving Enum
+
+instance Default Page where
+  def = Home
 
 newtype Translation = Translation T.Text
   deriving Generic
@@ -60,7 +75,22 @@ controller page lang = do
         let docs_repo = repoXs Map.! "frontDocs"
         let resource = (page^.isoPage <> "-" <> lang^.isoLang <> ".txt")^.stext
         let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
-        fmap handleRespDocs $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
+        fmap handleResp $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
   resp <- for cfg getTranslation
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
   return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap Translation) resp
+
+handleResp :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
+handleResp resp =
+    if responseStatus resp == ok200 || 
+      responseStatus resp == accepted202 
+    then let mkResp 
+               (Repos_get_contentResponse200 (
+                 Repos_get_contentResponseBody200Content_file (
+                   Content_file {..}))) 
+               = Right $ content_fileContent^.textbs.to decodeLenient.from textbs
+             mkResp (Repos_get_contentResponse200 _) 
+               = Left "there is no file: directory, symlink, submodule"
+             mkResp err = Left $ (show err)^.stext
+         in  mkResp $ responseBody resp
+    else Left $ show (responseBody resp)^.stext

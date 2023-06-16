@@ -16,14 +16,15 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Scaffold.Api.Controller.Frontend.Init (controller, handleRespDocs, Init) where
+module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
 import Scaffold.Transport.Response
 import Scaffold.EnvKeys (repo, resources)
+import Scaffold.Api.Controller.Frontend.Translate (handleResp, Lang (..), Page)
+import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
 
 import OpenAPI.Operations.Repos_get_content
 import OpenAPI.Operations.Git_get_ref
-import OpenAPI.Types.ContentFile
 import "github" OpenAPI.Common
 import OpenAPI.Types.GitRef 
 
@@ -50,10 +51,7 @@ import Control.Concurrent.Async.Lifted (forConcurrently)
 import Network.HTTP.Client (responseStatus, responseBody)
 import Network.HTTP.Types.Status (ok200, accepted202)
 import Data.Functor (($>))
-import Data.ByteString.Base64 (decodeLenient)
-import Control.Lens.Iso.Extended (textbs)
 import qualified Data.Map as Map
-import qualified Network.HTTP.Client as HTTP
 
 newtype Home = Home T.Text
   deriving stock Generic
@@ -102,11 +100,13 @@ instance ToSchema Content where
           , ("about", about)
           , ("service", service) ]
 
-data Init = 
+data Init =
      Init 
      { content :: !Content
      , shaCommit :: !T.Text
      , shaCommitCss :: !T.Text 
+     , lang :: ![Lang]
+     , page :: ![Page]
      }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
@@ -120,12 +120,20 @@ instance ToSchema Init where
   declareNamedSchema _ = do
     content <- declareSchemaRef (Proxy @Content)
     text <- declareSchemaRef (Proxy @T.Text)
+    lang <- declareSchemaRef (Proxy @Lang)
+    page <- declareSchemaRef (Proxy @Page)
     pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Init))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ 
            fromList [ 
             ("content", content)
-          , ("shaCommit", text) ]
+          , ("shaCommit", text)
+          , ("shaCommitCss", text)
+          , ("lang", lang)
+          , ("page", page) ]
+
+
+defInit = Init def def def def def
 
 controller :: KatipControllerM (Response Init)
 controller = do 
@@ -137,7 +145,7 @@ controller = do
       forConcurrently 
       (reqXs (repo (snd docs_repo)) (resources (snd docs_repo))) 
       (liftIO . runWithConfiguration (fst docs_repo) . repos_get_content)
-    let res_docs_repo = sequence $ map handleRespDocs resp_frontDocs
+    let res_docs_repo = sequence $ map handleResp resp_frontDocs
     
     -- front
     let front_repo = repoXs Map.! "front"
@@ -158,6 +166,8 @@ controller = do
               , service = Service serviceCnt })
               shaCommit
               shaCommitCss
+              [English .. Turkish]
+              [Tr.Home .. Tr.Service]
 
     case mkInit of
       Right init -> return $ Ok init 
@@ -165,22 +175,7 @@ controller = do
         $(logTM) ErrorS (logStr ("Github error: " <> err))
         $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  return $ fromMaybe (Ok (Init def def def)) resp
-
-handleRespDocs :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
-handleRespDocs resp =
-    if responseStatus resp == ok200 || 
-      responseStatus resp == accepted202 
-    then let mkResp 
-               (Repos_get_contentResponse200 (
-                 Repos_get_contentResponseBody200Content_file (
-                   Content_file {..}))) 
-               = Right $ content_fileContent^.textbs.to decodeLenient.from textbs
-             mkResp (Repos_get_contentResponse200 _) 
-               = Left "there is no file: directory, symlink, submodule"
-             mkResp err = Left $ (show err)^.stext
-         in  mkResp $ responseBody resp
-    else Left $ show (responseBody resp)^.stext
+  return $ fromMaybe (Ok defInit) resp
 
 handleRespFront resp = 
     if responseStatus resp == ok200 || 
