@@ -24,10 +24,7 @@ newtype Payload = Payload { getPayload :: Object }
 instance Arbitrary Payload where arbitrary = pure $ Payload empty
 
 instance ToSchema Payload where
-  declareNamedSchema _ =
-    pure $
-    NamedSchema (Just "Payload") $
-    toSchema (Proxy @Object)
+  declareNamedSchema _ = pure $ NamedSchema (Just "Payload") $ toSchema (Proxy @Object)
 
 valueToPayload :: Value -> Payload
 valueToPayload (Object o) = Payload o

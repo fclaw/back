@@ -17,6 +17,7 @@
 module Scaffold.Api.Controller.Frontend.Log (controller, Request) where
 
 import Scaffold.Transport.Response
+import Scaffold.Transport.Payload (Payload (..))
 
 import Katip
 import KatipController
@@ -33,7 +34,7 @@ import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
 import BuildInfo (location)
 
-data Request = Request { build :: T.Text, msg :: T.Text }
+data Request = Request { build :: T.Text, payload :: Payload }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
      via WithOptions 
@@ -42,12 +43,16 @@ data Request = Request { build :: T.Text, msg :: T.Text }
 
 instance ToSchema Request where
   declareNamedSchema _ = do
-    textSchema <- declareSchemaRef (Proxy @T.Text)
+    text <- declareSchemaRef (Proxy @T.Text)
+    payload <- declareSchemaRef (Proxy @Payload)
     pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
-         & properties .~ fromList [ ("build", textSchema), ("msg", textSchema) ]
+         & properties .~ 
+           fromList [ 
+            ("build", text)
+          , ("payload", payload) ]
 
 controller :: Request -> KatipControllerM (Response ())
-controller (Request _ msg) = $(logTM) InfoS (logStr msg) $> Ok ()
+controller (Request _ msg) = $(logTM) InfoS (logStr (show msg)) $> Ok ()
 
 
