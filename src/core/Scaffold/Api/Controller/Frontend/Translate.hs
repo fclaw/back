@@ -89,10 +89,7 @@ data Translation =
   deriving stock Generic
   deriving (ToJSON)
      via WithOptions 
-     '[ SumEnc ObjWithSingleField
-     ,  ConstructorTagModifier 
-        '[ UserDefined ToLower
-        ,  UserDefined (StripConstructor Translation)] ] 
+     '[ SumEnc ObjWithSingleField ] 
      Translation
 
 instance ToSchema Translation 
