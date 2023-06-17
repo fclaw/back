@@ -29,8 +29,9 @@ data FrontendApi route =
       :> Get '[JSON] (Response Init)
     , _frontendApiTranslate
       :: route
-      :- "translate"
-      :> Capture "page" Page
+      :- "translate" 
+      :> Capture "resource" Resource
       :> Capture "lang" Lang
+      :> QueryParam' '[Optional, Strict] "location" Location
       :> Get '[JSON] (Response Translation)
     } deriving stock Generic

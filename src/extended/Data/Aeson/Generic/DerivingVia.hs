@@ -47,6 +47,7 @@ module Data.Aeson.Generic.DerivingVia
      , type UnwrapUnaryRecords
      , type TagSingleConstructors
      , StripConstructor
+     , ToLower
      )
   where
 
@@ -71,6 +72,7 @@ import GHC.TypeLits
 import Data.Typeable (Typeable, typeRep)
 import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe)
+import Data.Char (toLower)
 
 newtype WithOptions options a = WithOptions { runWithOptions :: a }
 
@@ -200,3 +202,8 @@ data StripConstructor a
 
 instance Typeable a => Reifies (StripConstructor a) (String -> String) where
   reflect _ = \s -> fromMaybe s $ stripPrefix (show (typeRep (Proxy @a))) s
+
+data ToLower
+
+instance Reifies ToLower (String -> String) where
+  reflect _ = map toLower

@@ -20,7 +20,7 @@ module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
 import Scaffold.Transport.Response
 import Scaffold.EnvKeys (repo, resources)
-import Scaffold.Api.Controller.Frontend.Translate (handleResp, Lang (..), Page)
+import Scaffold.Api.Controller.Frontend.Translate (handleResp, Lang (..), Location)
 import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
 
 import OpenAPI.Operations.Repos_get_content
@@ -106,7 +106,7 @@ data Init =
      , shaCommit :: !T.Text
      , shaCommitCss :: !T.Text 
      , lang :: ![Lang]
-     , page :: ![Page]
+     , page :: ![Location]
      }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
@@ -121,7 +121,7 @@ instance ToSchema Init where
     content <- declareSchemaRef (Proxy @Content)
     text <- declareSchemaRef (Proxy @T.Text)
     lang <- declareSchemaRef (Proxy @Lang)
-    page <- declareSchemaRef (Proxy @Page)
+    page <- declareSchemaRef (Proxy @Location)
     pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Init))^.stext)) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ 

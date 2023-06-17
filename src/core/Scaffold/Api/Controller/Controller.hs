@@ -119,11 +119,12 @@ frontend =
     (katipAddNamespace
     (Namespace ["frontend", "init"])
     Frontend.Init.controller)
-  , _frontendApiTranslate = \page lang ->
-    flip logExceptionM ErrorS $
-    katipAddNamespace
-    (Namespace ["frontend", "translate"]) 
-    (Frontend.Translate.controller page lang) }
+  , _frontendApiTranslate = 
+    \page resource lang ->
+      flip logExceptionM ErrorS $
+      katipAddNamespace
+      (Namespace ["frontend", "translate"]) 
+      (Frontend.Translate.controller page resource lang) }
 
 user :: User -> UserApi (AsServerT KatipControllerM) 
 user _ =

@@ -7,8 +7,13 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
 
-module Scaffold.Api.Controller.Frontend.Translate (controller, handleResp, Lang (..), Page (..), Translation) where
+
+module Scaffold.Api.Controller.Frontend.Translate 
+   (controller, handleResp, Lang (..), Location (..), Resource (..), Translation, MenuItem) 
+   where
 
 
 import Scaffold.Transport.Response
@@ -38,6 +43,9 @@ import Network.HTTP.Types.Status (ok200, accepted202)
 import Data.ByteString.Base64 (decodeLenient)
 import Control.Lens.Iso.Extended (textbs)
 import Data.Default.Class
+import Data.Aeson.Generic.DerivingVia
+import Data.Yaml (decodeEither', prettyPrintParseException)
+import Data.Bifunctor (first)
 
 data Lang = English | Turkish
   deriving stock Generic
@@ -46,39 +54,85 @@ data Lang = English | Turkish
 instance Default Lang where 
   def = English
 
-data Page = Home | About | Service
+data Location = Home | About | Service
   deriving stock Generic
   deriving Enum
 
-instance Default Page where
+instance Default Location where
   def = Home
 
-newtype Translation = Translation T.Text
-  deriving Generic
-  deriving (ToJSON)
+data Resource = Content | Menu
+  deriving stock Generic
+  deriving Enum
 
-instance ToSchema Translation
+instance Show Resource where
+  show Content = "content"
+  show Menu = "menu"
+
+instance Default Resource where
+  def = Content
+
+data MenuItem = MenuItemHome | MenuItemAbout | MenuItemService
+  deriving stock Generic
+  deriving (ToJSON)
+     via WithOptions 
+     '[ SumEnc ObjWithSingleField
+     ,  ConstructorTagModifier 
+        '[ UserDefined ToLower
+        ,  UserDefined (StripConstructor MenuItem)] ] 
+     MenuItem
+
+
+data Translation = 
+       TranslationContent T.Text 
+     | TranslationMenu (Map.Map T.Text T.Text)
+  deriving stock Generic
+  deriving (ToJSON)
+     via WithOptions 
+     '[ SumEnc ObjWithSingleField
+     ,  ConstructorTagModifier 
+        '[ UserDefined ToLower
+        ,  UserDefined (StripConstructor Translation)] ] 
+     Translation
+
+instance ToSchema Translation 
+
 
 mkToSchemaAndJSON ''Lang
-mkToSchemaAndJSON ''Page
+mkToSchemaAndJSON ''Location
+mkToSchemaAndJSON ''Resource
 mkEnumConvertor ''Lang
-mkEnumConvertor ''Page
+mkEnumConvertor ''Location
+mkEnumConvertor ''Resource
 mkParamSchemaEnum ''Lang [| isoLang.jsonb |]
-mkParamSchemaEnum ''Page [| isoPage.jsonb |]
+mkParamSchemaEnum ''Location [| isoLocation.jsonb |]
+mkParamSchemaEnum ''Resource [| isoResource.jsonb |]
 mkFromHttpApiDataEnum ''Lang [| from stext.from isoLang.to Right |]
-mkFromHttpApiDataEnum ''Page [| from stext.from isoPage.to Right |]
+mkFromHttpApiDataEnum ''Location [| from stext.from isoLocation.to Right |]
+mkFromHttpApiDataEnum ''Resource [| from stext.from isoResource.to Right |]
 
-controller :: Page -> Lang -> KatipControllerM (Response Translation)
-controller page lang = do
+controller :: Resource -> Lang -> Maybe Location -> KatipControllerM (Response Translation)
+controller Content lang (Just location) = do
   cfg <- fmap (^.katipEnv.github) ask
   let getTranslation repoXs = do 
         let docs_repo = repoXs Map.! "frontDocs"
-        let resource = (page^.isoPage <> "-" <> lang^.isoLang <> ".txt")^.stext
+        let resource = (location^.isoLocation <> "-" <> lang^.isoLang <> ".txt")^.stext
         let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
         fmap handleResp $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
   resp <- for cfg getTranslation
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap Translation) resp
+  return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap TranslationContent) resp
+controller Content lang Nothing = pure $ Error $ asError @T.Text "Content requires params location to be set"
+controller value@Menu lang _ = do
+  cfg <- fmap (^.katipEnv.github) ask
+  let getTranslation repoXs = do 
+        let docs_repo = repoXs Map.! "frontDocs"
+        let resource = (value^.isoResource <> "-" <> lang^.isoLang <> ".yaml")^.stext
+        let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
+        fmap handleRespMenu $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
+  resp <- for cfg getTranslation
+  when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
+  return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap TranslationMenu) resp
 
 handleResp :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
 handleResp resp =
@@ -94,3 +148,18 @@ handleResp resp =
              mkResp err = Left $ (show err)^.stext
          in  mkResp $ responseBody resp
     else Left $ show (responseBody resp)^.stext
+
+handleRespMenu :: HTTP.Response Repos_get_contentResponse -> Either T.Text (Map.Map T.Text T.Text)
+handleRespMenu resp = 
+  if responseStatus resp == ok200 || 
+      responseStatus resp == accepted202 
+  then let mkMap 
+            (Repos_get_contentResponse200 (
+              Repos_get_contentResponseBody200Content_file (
+                Content_file {..})))
+            =  first (T.pack . prettyPrintParseException) $ decodeEither' $ content_fileContent^.textbs.to decodeLenient        
+           mkMap (Repos_get_contentResponse200 _) 
+             = Left "there is no file: directory, symlink, submodule"
+           mkMap err = Left $ (show err)^.stext
+       in  mkMap $ responseBody resp   
+  else Left $ show (responseBody resp)^.stext
