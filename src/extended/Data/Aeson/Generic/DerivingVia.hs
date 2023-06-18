@@ -201,7 +201,8 @@ instance (Generic a, GFromJSON Zero (Rep a), Reifies (options :: k) Options)
 data StripConstructor a
 
 instance Typeable a => Reifies (StripConstructor a) (String -> String) where
-  reflect _ = \s -> fromMaybe s $ stripPrefix (show (typeRep (Proxy @a))) s
+  reflect _ = \s -> let (head:tail) = show (typeRep (Proxy @a))
+                    in fromMaybe s $ stripPrefix (toLower head : tail) s
 
 data ToLower
 

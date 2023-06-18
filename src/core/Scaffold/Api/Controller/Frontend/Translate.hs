@@ -28,10 +28,9 @@ import TH.Mk
 import KatipController
 import qualified Data.Text as T
 import GHC.Generics (Generic)
-import Data.Swagger (ToSchema)
 import Control.Lens
 import Control.Lens.Iso.Extended (jsonb, stext)
-import Data.Aeson (ToJSON)
+import Data.Aeson (ToJSON, FromJSON)
 import qualified Data.Map as Map
 import Data.Traversable (for)
 import Data.Maybe (isNothing)
@@ -46,6 +45,11 @@ import Data.Default.Class
 import Data.Aeson.Generic.DerivingVia
 import Data.Yaml (decodeEither', prettyPrintParseException)
 import Data.Bifunctor (first)
+import Data.Swagger hiding (Response)
+import BuildInfo (location)
+import GHC.Exts
+import Data.Proxy (Proxy (..))
+import Type.Reflection (typeRep)
 
 data Lang = English | Turkish
   deriving stock Generic
@@ -74,7 +78,7 @@ instance Default Resource where
 
 data MenuItem = MenuItemHome | MenuItemAbout | MenuItemService
   deriving stock Generic
-  deriving (ToJSON)
+  deriving (ToJSON, FromJSON)
      via WithOptions 
      '[ SumEnc ObjWithSingleField
      ,  ConstructorTagModifier 
@@ -82,10 +86,25 @@ data MenuItem = MenuItemHome | MenuItemAbout | MenuItemService
         ,  UserDefined (StripConstructor MenuItem)] ] 
      MenuItem
 
+ 
+data MenuItemObj = MenuItemObj { menuItemObjKey :: !T.Text, menuItemObjValue :: !T.Text }  
+  deriving stock Generic
+  deriving (FromJSON, ToJSON)
+     via WithOptions 
+     '[ FieldLabelModifier '[UserDefined ToLower, UserDefined (StripConstructor MenuItemObj)]] 
+     MenuItemObj
+
+instance ToSchema MenuItemObj where
+  declareNamedSchema _ = do
+    text <- declareSchemaRef (Proxy @T.Text)
+    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @MenuItemObj))^.stext)) $ mempty
+         & type_ ?~ SwaggerObject
+         & properties .~ 
+           fromList [ ("key", text), ("value", text) ]
 
 data Translation = 
        TranslationContent T.Text 
-     | TranslationMenu (Map.Map T.Text T.Text)
+     | TranslationMenu [MenuItemObj]
   deriving stock Generic
   deriving (ToJSON)
      via WithOptions 
@@ -146,7 +165,7 @@ handleResp resp =
          in  mkResp $ responseBody resp
     else Left $ show (responseBody resp)^.stext
 
-handleRespMenu :: HTTP.Response Repos_get_contentResponse -> Either T.Text (Map.Map T.Text T.Text)
+handleRespMenu :: HTTP.Response Repos_get_contentResponse -> Either T.Text [MenuItemObj]
 handleRespMenu resp = 
   if responseStatus resp == ok200 || 
       responseStatus resp == accepted202 

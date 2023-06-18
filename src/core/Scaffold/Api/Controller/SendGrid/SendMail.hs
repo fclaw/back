@@ -19,7 +19,7 @@
 module Scaffold.Api.Controller.SendGrid.SendMail (controller, Request) where
 
 import Scaffold.Transport.Response
-import Scaffold.Config (Email (..), SendGrid (..), email)
+import Scaffold.Config (Email (..), SendGrid (..), personalizationEmail)
 
 import OpenAPI.Operations.POST_mail_send 
   ( pOST_mail_send
@@ -99,7 +99,7 @@ controller req@Request {..} = do
             body)]
           (mkFrom_email_object (coerce sendGridSenderIdentity))
           [((mkPOST_mail_sendRequestBodyPersonalizationssendgrid 
-          (map (mkTo_email_arrayItem . coerce . email) sendGridPersons))
+          (map (mkTo_email_arrayItem . coerce . personalizationEmail) sendGridPersons))
           {  pOST_mail_sendRequestBodyPersonalizationssendgridSend_at = Just tm
             , pOST_mail_sendRequestBodyPersonalizationssendgridSubject = Just $ subject })
           ]

@@ -41,7 +41,7 @@ data EnvKeys =
   deriving stock Show
   deriving FromJSON
     via WithOptions
-    '[ FieldLabelModifier '[ UserDefined (StripConstructor EnvKeys)]] 
+    '[ FieldLabelModifier '[ UserDefined ToLower, UserDefined (StripConstructor EnvKeys)]] 
     EnvKeys
 
 makeFields ''Creds

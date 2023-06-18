@@ -57,9 +57,9 @@ EXPOSE 12000/tcp
 WORKDIR /server
 
 RUN echo \
-"envKeysSendgrid: $sendgrid_key\n"\
-"envKeysTelegramBot: $telegram_bot_key\n"\
-"envKeysGithub:\n"\
+"sendgrid: $sendgrid_key\n"\
+"telegramBot: $telegram_bot_key\n"\
+"github:\n"\
 "   frontDocs:\n"\
 "      repo: turkish-trade-house-docs\n"\ 
 "      key: $github_tth_docs_key\n"\

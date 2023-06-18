@@ -147,12 +147,12 @@ newtype Email = Email T.Text
   deriving stock Show
   deriving ToSchema
 
-data Personalization = Personalization { email :: !Email, personalization :: !T.Text } 
+data Personalization = Personalization { personalizationEmail :: !Email, personalizationPersonalization :: !T.Text } 
   deriving stock Generic
   deriving stock Show
   deriving FromJSON
     via WithOptions 
-    '[ FieldLabelModifier '[ UserDefined (StripConstructor Personalization)]] 
+    '[ FieldLabelModifier '[ UserDefined ToLower, UserDefined (StripConstructor Personalization)]] 
     Personalization
   
 data SendGrid =
