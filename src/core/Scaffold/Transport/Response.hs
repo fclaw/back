@@ -63,23 +63,23 @@ pattern Error err = Response Nothing [] [err]
 instance ToJSON a => ToJSON (Response a) where
   toJSON (Response Nothing [] []) = object ["success" .= Null]
   toJSON (Response Nothing ys xs) = object
-    $ (if null ys then id else (("warning".=ys):))
-      (["error".=xs | not (null xs)])
+    $ (if null ys then id else (("warnings".=ys):))
+      (["errors".=xs | not (null xs)])
   toJSON (Response (Just x) ys xs) = object
     $ (if null ys then id else (("warning".=ys):))
-    . (if null xs then id else (("error".=xs):))
+    . (if null xs then id else (("errors".=xs):))
     $ ["success" .= x ]
 
 instance FromJSON a => FromJSON (Response a) where
   parseJSON = withObject "response" $ \o -> do
     msuccess <- o .:? "success"
-    warns <- o .:? "warning" .!= []
-    errors <- o .:? "error" .!= []
+    warns <- o .:? "warnings" .!= []
+    errors <- o .:? "errors" .!= []
     pure $ Response msuccess warns errors
 
 instance (ToSchema a, Typeable a) => ToSchema (Response a) where
   declareNamedSchema _ = do
-    eSchema <- declareSchemaRef (Proxy @Error)
+    eSchema <- declareSchemaRef (Proxy @[Error])
     aSchema <- declareSchemaRef (Proxy @a)
     let uniq = T.pack $ show (typeRep (Proxy @a))
     pure $ NamedSchema (Just $ "Response(" <> uniq <> ")") $ mempty
@@ -87,7 +87,7 @@ instance (ToSchema a, Typeable a) => ToSchema (Response a) where
          & properties .~ fromList
              [ ("success", aSchema)
              , ("warnings", eSchema)
-             , ("error", eSchema) ]
+             , ("errors", eSchema) ]
 
 instance Arbitrary a => Arbitrary (Response a) where arbitrary = fmap (\x -> Response x [] []) arbitrary
 
