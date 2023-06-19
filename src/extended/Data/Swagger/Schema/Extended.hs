@@ -52,7 +52,7 @@ deriveToSchemaFieldLabelModifier name modify =
   [d|
     instance ToSchema $(conT name) where
       declareNamedSchema = 
-       genericDeclareNamedSchema $ defaultSchemaOptions { fieldLabelModifier = $modify }
+       genericDeclareNamedSchema @($(conT name)) $ defaultSchemaOptions { fieldLabelModifier = $modify }
   |]
 
 

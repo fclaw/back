@@ -46,10 +46,11 @@ import Data.Aeson.Generic.DerivingVia
 import Data.Yaml (decodeEither', prettyPrintParseException)
 import Data.Bifunctor (first)
 import Data.Swagger hiding (Response)
-import BuildInfo (location)
-import GHC.Exts
 import Data.Proxy (Proxy (..))
-import Type.Reflection (typeRep)
+import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
+import Data.List (stripPrefix)
+import Data.Typeable (typeRep)
+import Data.Char (toLower)
 
 data Lang = English | Turkish
   deriving stock Generic
@@ -86,7 +87,6 @@ data MenuItem = MenuItemHome | MenuItemAbout | MenuItemService
         ,  UserDefined (StripConstructor MenuItem)] ] 
      MenuItem
 
- 
 data MenuItemObj = MenuItemObj { menuItemObjKey :: !T.Text, menuItemObjValue :: !T.Text }  
   deriving stock Generic
   deriving (FromJSON, ToJSON)
@@ -94,13 +94,9 @@ data MenuItemObj = MenuItemObj { menuItemObjKey :: !T.Text, menuItemObjValue :: 
      '[ FieldLabelModifier '[UserDefined ToLower, UserDefined (StripConstructor MenuItemObj)]] 
      MenuItemObj
 
-instance ToSchema MenuItemObj where
-  declareNamedSchema _ = do
-    text <- declareSchemaRef (Proxy @T.Text)
-    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @MenuItemObj))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ 
-           fromList [ ("key", text), ("value", text) ]
+deriveToSchemaFieldLabelModifier ''MenuItemObj [| 
+  \s -> let (head:tail) = show (typeRep (Proxy @MenuItemObj))
+        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
 data Translation = 
        TranslationContent T.Text 

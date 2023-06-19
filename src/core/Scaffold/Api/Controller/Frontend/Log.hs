@@ -14,7 +14,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Scaffold.Api.Controller.Frontend.Log (controller, Request) where
+module Scaffold.Api.Controller.Frontend.Log (controller, FrontendLogRequest) where
 
 import Scaffold.Transport.Response
 import Scaffold.Transport.Payload (Payload (..))
@@ -23,36 +23,27 @@ import Katip
 import KatipController
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
-import GHC.Exts
 import qualified Data.Text as T
-import Data.Swagger hiding (Response)
 import GHC.Generics
-import Control.Lens
 import Data.Functor (($>))
 import Data.Proxy (Proxy (..))
-import Type.Reflection (typeRep)
-import Control.Lens.Iso.Extended (stext)
-import BuildInfo (location)
+import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
+import Data.List (stripPrefix)
+import Data.Typeable (typeRep)
+import Data.Char (toLower)
 
-data Request = Request { build :: T.Text, payload :: Payload }
+data FrontendLogRequest = FrontendLogRequest { build :: T.Text, payload :: Payload }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
      via WithOptions 
-     '[ FieldLabelModifier '[ UserDefined (StripConstructor Request)]] 
-     Request
+     '[ FieldLabelModifier '[ UserDefined (StripConstructor FrontendLogRequest)]] 
+     FrontendLogRequest
 
-instance ToSchema Request where
-  declareNamedSchema _ = do
-    text <- declareSchemaRef (Proxy @T.Text)
-    payload <- declareSchemaRef (Proxy @Payload)
-    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ 
-           fromList [ 
-            ("build", text)
-          , ("payload", payload) ]
+deriveToSchemaFieldLabelModifier ''FrontendLogRequest [| 
+  \s -> let (head:tail) = show (typeRep (Proxy @FrontendLogRequest))
+        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
-controller :: Request -> KatipControllerM (Response ())
-controller (Request _ msg) = $(logTM) InfoS (logStr (show msg)) $> Ok ()
+controller :: FrontendLogRequest -> KatipControllerM (Response ())
+controller (FrontendLogRequest _ msg) = $(logTM) InfoS (logStr (show msg)) $> Ok ()
 
 

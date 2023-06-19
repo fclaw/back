@@ -8,7 +8,7 @@
 
 module Scaffold.Api.Foreign.SendGrid (SendGridApi (..)) where
 
-import Scaffold.Api.Controller.SendGrid.SendMail (Request)
+import Scaffold.Api.Controller.SendGrid.SendMail (SendGridSendMailRequest)
 import Scaffold.Transport.Response ( Response )
 
 import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
@@ -19,6 +19,6 @@ newtype SendGridApi route =
           _sendGridApiSendMail
           :: route
           :- "send"
-          :> ReqBody '[JSON] Request
+          :> ReqBody '[JSON] SendGridSendMailRequest
           :> Post '[JSON] (Response ())
         } deriving stock Generic

@@ -16,7 +16,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PackageImports #-}
 
-module Scaffold.Api.Controller.SendGrid.SendMail (controller, Request) where
+module Scaffold.Api.Controller.SendGrid.SendMail (controller, SendGridSendMailRequest) where
 
 import Scaffold.Transport.Response
 import Scaffold.Config (Email (..), SendGrid (..), personalizationEmail)
@@ -40,12 +40,8 @@ import Data.Aeson.Generic.DerivingVia
 import GHC.Exts
 import qualified Data.Text as T
 import GHC.Generics
-import Data.Swagger hiding (Response, email)
 import Control.Lens
 import Data.Proxy (Proxy (..))
-import Type.Reflection (typeRep)
-import Control.Lens.Iso.Extended (stext)
-import BuildInfo (location)
 import Control.Monad.IO.Class
 import Network.HTTP.Client (responseStatus, responseBody)
 import Network.HTTP.Types.Status (ok200, accepted202)
@@ -55,9 +51,14 @@ import Data.Time.Clock.System (getSystemTime, systemSeconds)
 import Data.Traversable (for)
 import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (when)
+import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
+import Data.List (stripPrefix)
+import Data.Typeable (typeRep)
+import Data.Char (toLower)
 
-data Request = 
-     Request 
+
+data SendGridSendMailRequest = 
+     SendGridSendMailRequest 
      { from :: !Email
      , personalization :: !T.Text 
      , subject :: !T.Text
@@ -66,23 +67,15 @@ data Request =
     deriving stock Show
     deriving (ToJSON, FromJSON)
        via WithOptions 
-       '[ FieldLabelModifier '[ UserDefined (StripConstructor Request)]] 
-       Request
+       '[ FieldLabelModifier '[ UserDefined (StripConstructor SendGridSendMailRequest)]] 
+       SendGridSendMailRequest
 
-instance ToSchema Request where
-  declareNamedSchema _ = do
-    textSchema <- declareSchemaRef (Proxy @T.Text)
-    emailSchema <- declareSchemaRef (Proxy @Email)
-    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Request))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ fromList 
-           [ ("personalization", textSchema)
-           , ("from", emailSchema)
-           , ("subject", textSchema)
-           , ("body", textSchema) ]
+deriveToSchemaFieldLabelModifier ''SendGridSendMailRequest [| 
+  \s -> let (head:tail) = show (typeRep (Proxy @SendGridSendMailRequest))
+        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
-controller :: Request -> KatipControllerM (Response ())
-controller req@Request {..} = do
+controller :: SendGridSendMailRequest -> KatipControllerM (Response ())
+controller req@SendGridSendMailRequest {..} = do
   $(logTM) InfoS $ logStr (show req)
   cfg <- fmap (^.katipEnv.sendGrid) ask
   resp <- for cfg $ \(SendGrid {..}, sendgrid) -> do

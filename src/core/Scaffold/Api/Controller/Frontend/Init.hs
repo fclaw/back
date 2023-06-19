@@ -32,15 +32,12 @@ import Katip
 import KatipController hiding (Service)
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
-import GHC.Exts
 import qualified Data.Text as T
 import Data.Swagger hiding (Response)
 import GHC.Generics hiding (from, to)
 import Control.Lens
 import Data.Proxy (Proxy (..))
-import Type.Reflection (typeRep)
 import Control.Lens.Iso.Extended (stext)
-import BuildInfo (location)
 import Data.Default.Class
 import Data.Text.Extended ()
 import Data.Traversable (for)
@@ -53,6 +50,11 @@ import Network.HTTP.Types.Status (ok200, accepted202)
 import Data.Functor (($>))
 import qualified Data.Map as Map
 import Scaffold.Transport.Id
+import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
+import Data.List (stripPrefix)
+import Data.Typeable (typeRep)
+import Data.Char (toLower)
+
 
 newtype Home = Home T.Text
   deriving stock Generic
@@ -88,18 +90,9 @@ data Content =
 
 instance Default Content
 
-instance ToSchema Content where
-  declareNamedSchema _ = do
-    home <- declareSchemaRef (Proxy @Home)
-    about <- declareSchemaRef (Proxy @About)
-    service <- declareSchemaRef (Proxy @Service)
-    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Content))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ 
-           fromList [ 
-            ("home", home)
-          , ("about", about)
-          , ("service", service) ]
+deriveToSchemaFieldLabelModifier ''Content [| 
+  \s -> let (head:tail) = show (typeRep (Proxy @Content))
+        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
 data Init =
      Init 
@@ -117,21 +110,9 @@ data Init =
 
 instance Default Init
 
-instance ToSchema Init where
-  declareNamedSchema _ = do
-    content <- declareSchemaRef (Proxy @Content)
-    text <- declareSchemaRef (Proxy @T.Text)
-    lang <- declareSchemaRef (Proxy @Lang)
-    page <- declareSchemaRef (Proxy @Location)
-    pure $ NamedSchema (Just ($location <> "." <> (show (typeRep @Init))^.stext)) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ 
-           fromList [ 
-            ("content", content)
-          , ("shaCommit", text)
-          , ("shaCommitCss", text)
-          , ("lang", lang)
-          , ("page", page) ]
+deriveToSchemaFieldLabelModifier ''Init [| 
+  \s -> let (head:tail) = show (typeRep (Proxy @Init))
+        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
 
 defInit = Init def def def def def

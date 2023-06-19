@@ -8,7 +8,7 @@
 
 module Scaffold.Api.Frontend (FrontendApi (..)) where
 
-import Scaffold.Api.Controller.Frontend.Log (Request)
+import Scaffold.Api.Controller.Frontend.Log (FrontendLogRequest)
 import Scaffold.Api.Controller.Frontend.Init (Init)
 import Scaffold.Api.Controller.Frontend.Translate hiding (controller)
 import Scaffold.Api.Controller.Frontend.GetCookies (Cookie)
@@ -23,7 +23,7 @@ data FrontendApi route =
        _frontendApiLog
       :: route
       :- "log"
-      :> ReqBody '[JSON] Request
+      :> ReqBody '[JSON] FrontendLogRequest
       :> Put '[JSON] (Response ())
     , _frontendApiInit
       :: route
