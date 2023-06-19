@@ -103,6 +103,8 @@ jobs:
             github_tth_docs_key=${{ vars.REPO_GITHUB_KEY_TTH_DOCS }}
             github_tth_main_key=${{ vars.REPO_GITHUB_KEY_TTH_MAIN }}
             github_tth_css=${{ vars.REPO_GITHUB_KEY_TTH_CSS }}
+            mute_500=${{ vars.MUTE_500 }}
+            env_yaml=${{ vars.ENV_YAML }}
           context: .
           file: ./Dockerfile
           push: true

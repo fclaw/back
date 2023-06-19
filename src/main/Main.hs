@@ -97,6 +97,7 @@ data Cmd w =
      , cfgAdminStoragePath :: w ::: FilePath <?> "admin storage"
      , printCfg :: w ::: Maybe PrintCfg  <?> "whether config be printed"
      , envPath :: w ::: Maybe FilePath <?> "file for storing sensitive data. it's used only in deployment"
+     , mute500 :: w ::: Maybe Bool <?> "how to render 500 error"
      } deriving stock Generic
 
 deriving instance Show (Cmd Unwrapped)
@@ -227,6 +228,8 @@ main = do
         (cfg^.cors)
         (cfg^.serverError)
         admin_storage
+        mute500
+
   manager <- Http.newTlsManagerWith Http.tlsManagerSettings
     { managerConnCount = 1
     , managerResponseTimeout =

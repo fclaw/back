@@ -51,6 +51,12 @@ ARG telegram_bot_key
 ARG github_tth_docs_key
 ARG github_tth_main_key
 ARG github_tth_css
+ARG mute_500
+ARG env_yaml
+
+ENV MUTE_500 ${mute_500}
+ENV YAML_ENV ${env_yaml} 
+
 
 EXPOSE 12000/tcp
 

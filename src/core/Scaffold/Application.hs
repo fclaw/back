@@ -82,6 +82,7 @@ data Cfg =
      , cfgCors          :: !Cfg.Cors
      , cfgServerError   :: !Cfg.ServerError
      , cfgAdminStorage  :: !(M.Map T.Text User)
+     , mute500          :: !(Maybe Bool)
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -146,7 +147,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
         Warp.defaultSettings
         & Warp.setPort cfgServerPort
         & Warp.setOnException (logUncaughtException excep runTelegram)
-        & Warp.setOnExceptionResponse (`mk500Response` coerce cfgServerError)
+        & Warp.setOnExceptionResponse (\e -> mk500Response e (coerce cfgServerError) mute500)
         & Warp.setServerName ("scaffold api server, revision " <> $gitCommit)
         & Warp.setLogger (logRequest req_logger runTelegram)
   let multipartOpts =
@@ -178,16 +179,30 @@ logUncaughtException log runTelegram req e =
     runTelegram log $ "\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e
     log ErrorS (logStr ("\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e)))
   req
-mk500Response :: SomeException -> Bool -> Response
-mk500Response error = bool
+
+mk500Response :: SomeException  -> Bool -> Maybe Bool -> Response
+mk500Response error cfgServerError mute500 = bool
   (responseLBS status200
    [(H.hContentType, "application/json; charset=utf-8"),
     (hAccessControlAllowOrigin, "*")] $
    encode @(Response.Response ()) $
    Response.Error (asError @T.Text (showt error)))
-  (responseLBS status500
-   [(H.hContentType, "text/plain; charset=utf-8"),
-    (hAccessControlAllowOrigin, "*")] (showt error^.textbsl))
+   mk500
+   cfgServerError
+  where 
+    mk500 =
+      case mute500 of 
+        Just True -> 
+          responseLBS status500
+          [(H.hContentType, "text/plain; charset=utf-8"),
+          (hAccessControlAllowOrigin, "*")] (showt error^.textbsl)
+        _ -> 
+          responseLBS status200
+          [(H.hContentType, "text/json; charset=utf-8"),
+          (hAccessControlAllowOrigin, "*")] 
+          (encode @(Response.Response ()) $ 
+           Response.Error (asError @T.Text (showt error)))
+
 
 logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
 logRequest log runTelegram req _ _ = log InfoS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
