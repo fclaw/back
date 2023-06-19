@@ -52,6 +52,7 @@ import Network.HTTP.Client (responseStatus, responseBody)
 import Network.HTTP.Types.Status (ok200, accepted202)
 import Data.Functor (($>))
 import qualified Data.Map as Map
+import Scaffold.Transport.Id
 
 newtype Home = Home T.Text
   deriving stock Generic
@@ -135,8 +136,8 @@ instance ToSchema Init where
 
 defInit = Init def def def def def
 
-controller :: KatipControllerM (Response Init)
-controller = do 
+controller :: Maybe (Id "browserIdent") -> KatipControllerM (Response Init)
+controller _ = do 
   cfg <- fmap (^.katipEnv.github) ask
   resp <- for cfg $ \repoXs -> do
     -- frontDocs

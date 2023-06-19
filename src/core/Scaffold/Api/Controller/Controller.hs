@@ -21,6 +21,7 @@ import qualified Scaffold.Api.Controller.Frontend.Log as Frontend.Log
 import qualified Scaffold.Api.Controller.Frontend.Init as Frontend.Init
 import qualified Scaffold.Api.Controller.SendGrid.SendMail as SendGrid.Send
 import qualified Scaffold.Api.Controller.Frontend.Translate as Frontend.Translate
+import qualified Scaffold.Api.Controller.Frontend.GetCookies as Frontend.GetCookies
 import Servant.RawM.Server ()
 import Scaffold.Auth
 import Scaffold.Transport.Response
@@ -114,17 +115,22 @@ frontend =
     katipAddNamespace
     (Namespace ["frontend", "log"]) 
     (Frontend.Log.controller req)
-  , _frontendApiInit =
+  , _frontendApiInit = \browserIdent ->
     flip logExceptionM ErrorS
     (katipAddNamespace
     (Namespace ["frontend", "init"])
-    Frontend.Init.controller)
+    (Frontend.Init.controller browserIdent))
   , _frontendApiTranslate = 
     \page resource lang ->
       flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["frontend", "translate"]) 
-      (Frontend.Translate.controller page resource lang) }
+      (Frontend.Translate.controller page resource lang)
+  , _frontendApiGetCookies =
+    flip logExceptionM ErrorS
+    (katipAddNamespace
+    (Namespace ["frontend", "cookies"])
+    Frontend.GetCookies.controller)}
 
 user :: User -> UserApi (AsServerT KatipControllerM) 
 user _ =

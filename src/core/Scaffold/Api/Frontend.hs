@@ -11,6 +11,8 @@ module Scaffold.Api.Frontend (FrontendApi (..)) where
 import Scaffold.Api.Controller.Frontend.Log (Request)
 import Scaffold.Api.Controller.Frontend.Init (Init)
 import Scaffold.Api.Controller.Frontend.Translate hiding (controller)
+import Scaffold.Api.Controller.Frontend.GetCookies (Cookie)
+import Scaffold.Transport.Id
 
 import Servant.API.Generic ( Generic )
 import Servant.API.Extended
@@ -26,6 +28,7 @@ data FrontendApi route =
     , _frontendApiInit
       :: route
       :- "init"
+      :> QueryParam' '[Optional, Strict] "browserIdent" (Id "browserIdent")
       :> Get '[JSON] (Response Init)
     , _frontendApiTranslate
       :: route
@@ -34,4 +37,8 @@ data FrontendApi route =
       :> Capture "lang" Lang
       :> QueryParam' '[Optional, Strict] "location" Location
       :> Get '[JSON] (Response Translation)
+    , _frontendApiGetCookies
+      :: route 
+      :- "cookies"
+      :> Get '[JSON] (Response [Cookie])
     } deriving stock Generic
