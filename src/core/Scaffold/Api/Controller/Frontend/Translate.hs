@@ -128,16 +128,16 @@ mkFromHttpApiDataEnum ''Location [| from stext.from isoLocation.to Right |]
 mkFromHttpApiDataEnum ''Resource [| from stext.from isoResource.to Right |]
 
 controller :: Resource -> Lang -> Maybe Location -> KatipControllerM (Response Translation)
-controller Content lang (Just location) = undefined -- pure $ Error $ asError @T.Text "Content requires params location to be set"
-  -- cfg <- fmap (^.katipEnv.github) ask
-  -- let getTranslation repoXs = do 
-  --       let docs_repo = repoXs Map.! "frontDocs"
-  --       let resource = (location^.isoLocation <> "-" <> lang^.isoLang <> ".txt")^.stext
-  --       let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
-  --       fmap handleResp $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
-  -- resp <- for cfg getTranslation
-  -- when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
-  -- return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap TranslationContent) resp
+controller Content lang (Just location) = do
+  cfg <- fmap (^.katipEnv.github) ask
+  let getTranslation repoXs = do 
+        let docs_repo = repoXs Map.! "frontDocs"
+        let resource = (location^.isoLocation <> "-" <> lang^.isoLang <> ".txt")^.stext
+        let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
+        fmap handleResp $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
+  resp <- for cfg getTranslation
+  when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
+  return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap TranslationContent) resp
 controller Content lang Nothing = pure $ Error $ asError @T.Text "Content requires params location to be set"
 controller value@Menu lang _ = do
   cfg <- fmap (^.katipEnv.github) ask
