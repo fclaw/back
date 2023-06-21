@@ -16,7 +16,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Scaffold.Api.Controller.Frontend.GetCookies (controller, Cookie) where
+module Scaffold.Api.Controller.Frontend.GetCookies (controller, cookieTitle, Cookie) where
 
 
 import Scaffold.Transport.Response ( Response (..) )
@@ -36,6 +36,10 @@ import Data.Typeable (typeRep)
 import Data.Proxy (Proxy (..))
 import Data.Char (toLower)
 import System.Random (getStdGen, randomR)
+
+
+cookieTitle :: T.Text
+cookieTitle = "_tth"
 
 -- | Data type representing the options for a <https://tools.ietf.org/html/draft-west-first-party-cookies-07#section-4.1 SameSite cookie>
 data SameSiteOption 
@@ -84,6 +88,6 @@ deriveToSchemaFieldLabelModifier ''Cookie [|
 controller :: KatipControllerM (Response [Cookie])
 controller = do
   tm <- liftIO getCurrentTime
-  ident <- fmap (T.pack . show . randomR @Int (10000000, 50000000)) $ liftIO getStdGen
+  ident <- fmap (T.pack . show . fst . randomR @Int (10000000, 50000000)) $ liftIO getStdGen
   let expireTm = addUTCTime (secondsToNominalDiffTime 2592000) tm
-  return $ Ok [defaultSetCookie { cookieName = "_tth", cookieExpires = Just expireTm, cookieValue = ident }]
+  return $ Ok [defaultSetCookie { cookieName = cookieTitle, cookieExpires = Just expireTm, cookieValue = ident }]

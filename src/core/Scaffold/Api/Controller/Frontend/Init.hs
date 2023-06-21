@@ -22,6 +22,7 @@ import Scaffold.Transport.Response
 import Scaffold.EnvKeys (repo, resources)
 import Scaffold.Api.Controller.Frontend.Translate (handleResp, Lang (..), Location)
 import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
+import Scaffold.Api.Controller.Frontend.GetCookies (cookieTitle)
 
 import OpenAPI.Operations.Repos_get_content
 import OpenAPI.Operations.Git_get_ref
@@ -101,6 +102,7 @@ data Init =
      , shaCommitCss :: !T.Text 
      , lang :: ![Lang]
      , page :: ![Location]
+     , cookies :: ![T.Text]
      }
   deriving stock Generic
   deriving (ToJSON, FromJSON)
@@ -115,7 +117,7 @@ deriveToSchemaFieldLabelModifier ''Init [|
         in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
 
 
-defInit = Init def def def def def
+defInit = Init def def def def def def
 
 controller :: Maybe (Id "browserIdent") -> KatipControllerM (Response Init)
 controller _ = do 
@@ -150,6 +152,7 @@ controller _ = do
               shaCommitCss
               [English .. Turkish]
               [Tr.Home .. Tr.Service]
+              [cookieTitle]
 
     case mkInit of
       Right init -> return $ Ok init 
