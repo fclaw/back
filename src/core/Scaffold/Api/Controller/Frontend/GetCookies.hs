@@ -35,6 +35,7 @@ import Data.List (stripPrefix)
 import Data.Typeable (typeRep)
 import Data.Proxy (Proxy (..))
 import Data.Char (toLower)
+import System.Random (getStdGen, randomR)
 
 -- | Data type representing the options for a <https://tools.ietf.org/html/draft-west-first-party-cookies-07#section-4.1 SameSite cookie>
 data SameSiteOption 
@@ -83,5 +84,6 @@ deriveToSchemaFieldLabelModifier ''Cookie [|
 controller :: KatipControllerM (Response [Cookie])
 controller = do
   tm <- liftIO getCurrentTime
+  ident <- fmap (T.pack . show . randomR @Int (10000000, 50000000)) $ liftIO getStdGen
   let expireTm = addUTCTime (secondsToNominalDiffTime 2592000) tm
-  return $ Ok [defaultSetCookie { cookieName = "test", cookieExpires = Just expireTm }]
+  return $ Ok [defaultSetCookie { cookieName = "_tth", cookieExpires = Just expireTm, cookieValue = ident }]
