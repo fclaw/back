@@ -73,6 +73,7 @@ import qualified Data.Map as M
 import Language.Haskell.TH.Syntax (Loc)
 import Control.Monad.STM
 import Control.Concurrent.STM.TChan
+import Servant.Error.Formatters (formatters)
 
 data Cfg =
      Cfg
@@ -153,7 +154,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
   let multipartOpts =
         (defaultMultipartOptions (Proxy @Tmp))
         { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
-  let mkCtx = defaultJWTSettings jwk :. defaultCookieSettings :. checkBasicAuth basic_auth cfgAdminStorage :. EmptyContext
+  let mkCtx = formatters :. defaultJWTSettings jwk :. defaultCookieSettings :. checkBasicAuth basic_auth cfgAdminStorage :. EmptyContext
   let runServer = serveWithContext (withSwagger api) mkCtx server
   mware_logger <- katipAddNamespace (Namespace ["middleware"]) askLoggerWithLocIO
 
