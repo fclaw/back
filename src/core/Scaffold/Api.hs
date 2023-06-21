@@ -36,7 +36,6 @@ import Control.Lens
 import Control.Lens.Iso.Extended
 import Servant.Swagger.RawM ()
 import Servant.Auth.Swagger ()
-import Servant.Ip
 
 newtype Api route = Api { _apiHttp :: route :- ToServant HttpWrapperApi AsApi } deriving stock Generic
 
@@ -46,7 +45,6 @@ newtype HttpWrapperApi route =
           :: route
           :- Description "http api"
           :> "api"
-          :> HeaderIP
           :> ToServant HttpApi AsApi
         } deriving stock Generic
 

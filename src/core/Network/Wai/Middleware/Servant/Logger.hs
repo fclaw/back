@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Middleware (logger, showVault) where
+module Network.Wai.Middleware.Servant.Logger (logMw) where
 
 import Network.Wai
 import KatipController
@@ -12,8 +12,8 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Katip.Core (getLoc)
 
-logger :: KatipLoggerLocIO -> Middleware
-logger log app req runResp =
+logMw :: KatipLoggerLocIO -> Middleware
+logMw log app req runResp =
   app req $ \resp -> do
     start <- getCPUTime
     received <- runResp resp
@@ -28,6 +28,3 @@ logger log app req runResp =
          ", " <> duration
     log getLoc InfoS (ls message)
     return received
-
-showVault :: KatipLoggerLocIO -> Middleware
-showVault log app req runResp = log getLoc InfoS (ls @String "vault middleware") >> app req runResp

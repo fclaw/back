@@ -32,7 +32,6 @@ import Katip
 import KatipController
 import Servant.Server.Generic
 import Servant.API.Generic
-import Servant.Ip
 import Control.Monad.Time
 import BuildInfo
 import Data.Functor
@@ -45,10 +44,10 @@ import Data.Time.Clock.System (getSystemTime, systemSeconds)
 import Data.Version (showVersion)
 
 controller :: Api (AsServerT KatipControllerM)
-controller = Api { _apiHttp = toServant . httpApi  }
+controller = Api { _apiHttp = toServant httpApi  }
 
-httpApi :: Maybe IP4 -> HttpApi (AsServerT KatipControllerM)
-httpApi _ =
+httpApi :: HttpApi (AsServerT KatipControllerM)
+httpApi =
   HttpApi 
   { _httpApiFile = toServant file
   , _httpApiAdmin = (`withBasicAuth` toServant . admin)
@@ -63,8 +62,7 @@ httpApi _ =
               wwwAuthenticatedErr 
               "only for authorized personnel" 
   , _httpApiPublic = toServant public
-  , _httpApiForeign = 
-      toServant (ForeignApi { _foreignApiSendGrid = toServant sendgrid } :: ForeignApi (AsServerT KatipControllerM)) }
+  , _httpApiForeign = toServant _foreign }
 
 file :: FileApi (AsServerT KatipControllerM)
 file =
@@ -163,6 +161,9 @@ public =
         let msg = serverInfo <> ", server time: "  <> show (systemSeconds st)
         let resp = Ok [msg]
         WS.sendDataMessage c (WS.Text (Data.Aeson.encode resp) Nothing) ) }
+
+_foreign :: ForeignApi (AsServerT KatipControllerM)
+_foreign = ForeignApi { _foreignApiSendGrid = toServant sendgrid }
 
 sendgrid :: SendGridApi  (AsServerT KatipControllerM)
 sendgrid = 

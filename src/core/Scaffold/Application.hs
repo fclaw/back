@@ -40,7 +40,7 @@ import Servant.Auth.Server
 import Control.Concurrent.Async
 import Network.Wai
 import Control.Lens.Iso.Extended
-import qualified Middleware
+import qualified Network.Wai.Middleware.Servant.Logger as Middleware 
 import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)
 import Control.Monad.Catch
@@ -167,7 +167,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
   liftIO (void (waitAnyCancel [serverAsync, telegramAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerLocIO -> Application -> Application
-middleware cors log app = mkCors cors $ Middleware.logger log $ Middleware.showVault log app
+middleware cors log app = mkCors cors $ Middleware.logMw log app
 
 logUncaughtException :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Maybe Request -> SomeException -> IO ()
 logUncaughtException log runTelegram req e =
