@@ -22,6 +22,7 @@ import qualified Scaffold.Api.Controller.Frontend.Init as Frontend.Init
 import qualified Scaffold.Api.Controller.SendGrid.SendMail as SendGrid.Send
 import qualified Scaffold.Api.Controller.Frontend.Translate as Frontend.Translate
 import qualified Scaffold.Api.Controller.Frontend.GetCookies as Frontend.GetCookies
+import qualified Scaffold.Api.Controller.Frontend.GetMeta as Frontend.GetMeta
 import Servant.RawM.Server ()
 import Scaffold.Auth
 import Scaffold.Transport.Response
@@ -128,7 +129,12 @@ frontend =
     flip logExceptionM ErrorS
     (katipAddNamespace
     (Namespace ["frontend", "cookies"])
-    Frontend.GetCookies.controller)}
+    Frontend.GetCookies.controller)
+  , _frontendApiGetMeta = 
+    flip logExceptionM ErrorS
+    . katipAddNamespace
+    (Namespace ["frontend", "meta"])
+    . Frontend.GetMeta.controller}
 
 user :: User -> UserApi (AsServerT KatipControllerM) 
 user _ =

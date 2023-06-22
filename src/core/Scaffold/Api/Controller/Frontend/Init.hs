@@ -155,7 +155,7 @@ controller _ = do
               [cookieTitle]
 
     case mkInit of
-      Right init -> return $ Ok init 
+      Right init -> return $ Ok init
       Left err ->
         $(logTM) ErrorS (logStr ("Github error: " <> err))
         $> Error (asError @T.Text "something went wrong")

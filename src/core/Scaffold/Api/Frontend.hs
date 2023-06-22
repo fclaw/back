@@ -12,11 +12,13 @@ import Scaffold.Api.Controller.Frontend.Log (FrontendLogRequest)
 import Scaffold.Api.Controller.Frontend.Init (Init)
 import Scaffold.Api.Controller.Frontend.Translate hiding (controller)
 import Scaffold.Api.Controller.Frontend.GetCookies (Cookie)
+import Scaffold.Api.Controller.Frontend.GetMeta (Meta)
 import Scaffold.Transport.Id
+import Scaffold.Transport.Response ( Response )
 
 import Servant.API.Generic ( Generic )
 import Servant.API.Extended
-import Scaffold.Transport.Response ( Response )
+import qualified Data.Text as T
 
 data FrontendApi route =
      FrontendApi {
@@ -41,4 +43,9 @@ data FrontendApi route =
       :: route 
       :- "cookies"
       :> Get '[JSON] (Response [Cookie])
+    , _frontendApiGetMeta
+      :: route 
+      :- "meta"
+      :> QueryParam' '[Optional, Strict] "page" T.Text
+      :> Get '[JSON] (Response Meta)
     } deriving stock Generic

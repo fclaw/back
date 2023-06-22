@@ -12,7 +12,7 @@
 
 
 module Scaffold.Api.Controller.Frontend.Translate 
-   (controller, handleResp, Lang (..), Location (..), Resource (..), Translation, MenuItem) 
+   (controller, handleResp, handleRespYaml, Lang (..), Location (..), Resource (..), Translation, MenuItem) 
    where
 
 
@@ -141,7 +141,7 @@ controller value@Menu lang _ = do
         let docs_repo = repoXs Map.! "frontDocs"
         let resource = (value^.isoResource <> "-" <> lang^.isoLang <> ".yaml")^.stext
         let req = mkRepos_get_contentParameters "fclaw" resource (repo (snd docs_repo))
-        fmap handleRespMenu $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
+        fmap (handleRespYaml @[MenuItemObj]) $ liftIO $ runWithConfiguration (fst docs_repo) $ repos_get_content req
   resp <- for cfg getTranslation
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
   return $ maybe (Error (asError @T.Text "translation cannot be fetched")) (fromEither . fmap TranslationMenu) resp
@@ -161,8 +161,8 @@ handleResp resp =
          in  mkResp $ responseBody resp
     else Left $ show (responseBody resp)^.stext
 
-handleRespMenu :: HTTP.Response Repos_get_contentResponse -> Either T.Text [MenuItemObj]
-handleRespMenu resp = 
+handleRespYaml :: FromJSON a => HTTP.Response Repos_get_contentResponse -> Either T.Text a
+handleRespYaml resp = 
   if responseStatus resp == ok200 || 
       responseStatus resp == accepted202 
   then let mkMap 
