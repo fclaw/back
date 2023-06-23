@@ -20,10 +20,9 @@ import Katip
 import KatipController
 import Data.Text (Text, pack)
 import Data.Aeson (ToJSON, FromJSON (parseJSON), eitherDecodeStrict, withObject, (.:), (.:?))
-import Data.Swagger (ToSchema)
+import Data.Swagger hiding (Response)
 import GHC.Generics (Generic)
-import Control.Lens ((^.))
-import GHC.Prim (coerce)
+import Control.Lens
 import qualified Network.HTTP.Client as Http
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Control.Monad.IO.Class (liftIO)
@@ -34,12 +33,10 @@ import Control.Monad (when)
 import Data.Maybe (isNothing)
 import Control.Lens.Iso.Extended (textbs, bytesLazy)
 import Data.Bifunctor (first)
-import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
-import Data.List (stripPrefix)
 import Data.Typeable (typeRep)
-import Data.Char (toLower)
 import Data.Proxy (Proxy (..))
 import Network.HTTP.Types.Header (hContentType)
+import GHC.Exts
 
 newtype Token = Token Text
   deriving Generic
@@ -63,7 +60,7 @@ data ReCaptcha =
   deriving stock Show
   deriving (ToJSON)
     via WithOptions 
-      '[ FieldLabelModifier '[ UserDefined ToLower, UserDefined (StripConstructor ReCaptcha)]] 
+      '[ OmitNothingFields 'True ] 
        ReCaptcha
 
 instance FromJSON ReCaptcha where
@@ -74,9 +71,17 @@ instance FromJSON ReCaptcha where
       host <- o .: "hostname"
       pure $ ReCaptcha {..}
 
-deriveToSchemaFieldLabelModifier ''ReCaptcha [| 
-  \s -> let (head:tail) = show (typeRep (Proxy @ReCaptcha))
-        in maybe s (map toLower) (stripPrefix (toLower head : tail) s) |]
+instance ToSchema ReCaptcha where
+  declareNamedSchema _ = do
+    success <- declareSchemaRef (Proxy @Bool)
+    errors <- declareSchemaRef (Proxy @(Maybe [Text]))
+    host <- declareSchemaRef (Proxy @Text)
+    let ident = pack $ show (typeRep (Proxy @ReCaptcha))
+    pure $ NamedSchema (Just ident) $ mempty
+         & type_ ?~ SwaggerObject
+         & properties .~ fromList
+             [ ("success", success)
+             , ("host", host) ]
 
 controller :: Token -> KatipControllerM (Response ReCaptcha)
 controller token = do
