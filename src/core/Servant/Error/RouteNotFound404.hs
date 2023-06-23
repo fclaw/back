@@ -1,11 +1,11 @@
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Servant.Error.RouteNotFound404 (formatter) where
 
-import Servant.Server (err404, errBody, ServerError)
-import Network.Wai (rawPathInfo, Request)
-import Control.Lens.Iso.Extended (bytesLazy)
 import Control.Lens (from, (^.))
+import Control.Lens.Iso.Extended (bytesLazy)
+import Network.Wai (Request, rawPathInfo)
+import Servant.Server (ServerError, err404, errBody)
 
 formatter :: Request -> ServerError
-formatter req = err404 { errBody = ("Not found path: " <> rawPathInfo req)^.from bytesLazy }
+formatter req = err404 {errBody = ("Not found path: " <> rawPathInfo req) ^. from bytesLazy}

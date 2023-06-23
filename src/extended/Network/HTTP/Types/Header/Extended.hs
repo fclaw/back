@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Network.HTTP.Types.Header.Extended (module X, hAccessControlAllowOrigin, hXSetBearer) where
 

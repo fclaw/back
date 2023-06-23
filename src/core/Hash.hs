@@ -2,10 +2,10 @@
 
 module Hash (mkHash) where
 
-import Control.Lens.Iso.Extended
 import Control.Lens
+import Control.Lens.Iso.Extended
 import "hashing" Crypto.Hash
 import Data.Text
 
 mkHash :: Show a => a -> Text
-mkHash x = show (hash (show x^.stext.textbs) :: SHA256)^.stext
+mkHash x = show (hash (show x ^. stext . textbs) :: SHA256) ^. stext

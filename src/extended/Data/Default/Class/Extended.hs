@@ -3,10 +3,10 @@
 
 module Data.Default.Class.Extended (module Data.Default.Class) where
 
-import Data.Default.Class
-import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Data.Default.Class
+import qualified Data.Text.Lazy as LT
 import qualified Data.Vector.Extended as V
 
 instance Default LT.Text where

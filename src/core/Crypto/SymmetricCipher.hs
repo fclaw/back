@@ -1,18 +1,19 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE GADTs #-}
 
 module Crypto.SymmetricCipher
-       ( AES256
-       , genSecretKey
-       , genRandomIV
-       , encrypt
-       , decrypt
-       ) where
+  ( AES256,
+    genSecretKey,
+    genRandomIV,
+    encrypt,
+    decrypt,
+  )
+where
 
 import Crypto.Cipher.AES (AES256)
-import Crypto.Cipher.Types (BlockCipher(..), Cipher(..), IV, makeIV)
-import Crypto.Error (CryptoFailable(..), CryptoError(..))
+import Crypto.Cipher.Types (BlockCipher (..), Cipher (..), IV, makeIV)
+import Crypto.Error (CryptoError (..), CryptoFailable (..))
 import qualified Crypto.Random.Types as CRT
 import Data.ByteArray (ByteArray)
 import Data.ByteString (ByteString)

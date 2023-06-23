@@ -1,131 +1,143 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE KindSignatures         #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE RankNTypes             #-}
-{-|
 
-copyright https://hackage.haskell.org/package/tuple-sop
-
-This module exports various functions that work with n-ary tuples.
-
-Generally speaking all functions can be applied to tuples of different sizes.
-
-However, to improve type inference we have limited our implementation to only only work on tuples of at most size 10.
-
-For functions working with indexes we have also added some convenience functions to avoid usage of Proxy's.
--}
+-- |
+--
+-- copyright https://hackage.haskell.org/package/tuple-sop
+--
+-- This module exports various functions that work with n-ary tuples.
+--
+-- Generally speaking all functions can be applied to tuples of different sizes.
+--
+-- However, to improve type inference we have limited our implementation to only only work on tuples of at most size 10.
+--
+-- For functions working with indexes we have also added some convenience functions to avoid usage of Proxy's.
 module Data.Tuple.Extended
-  ( module Data.Tuple
-    -- * Selection
-  , sel
-  , selN
-    -- ** convenience functions 
-  , sel1
-  , sel2
-  , sel3
-  , sel4
-  , sel5
-  , sel6
-  , sel7
-  , sel8
-  , sel9
-  , sel10
-  , sel11
-  , sel12
-  , sel13
-  , sel14
-  , sel15
-  , lastT
-  -- * Application
-  , app
-  , appPoly
-  , appN
-  , appF
-  , mapT
-  , mapPolyT
-  -- ** convenience functions 
-  , app1
-  , app2
-  , app3
-  , app4
-  , app5
-  , app6
-  , app7
-  , app8
-  , app9
-  , app10
-  , app11
-  , app12
-  , app13
-  , app14
-  , app15  
-  -- * Constructing tuples
-  , consT
-  , snocT
-  , appendT
-  , reverseT
-  , initT
-  , tailT
-  -- * Insertion
-  , ins
-  , insN
-  , ins1
-  , ins2
-  , ins3
-  , ins4
-  , ins5
-  , ins6
-  , ins7
-  , ins8
-  , ins9
-  , ins10
-  , ins11
-  , ins12
-  , ins13
-  , ins14
-  , ins15  
-  -- * Deletion
-  , del
-  , delN
-  -- ** convenience functions
-  , del1
-  , del2
-  , del3
-  , del4
-  , del5
-  , del6
-  , del7
-  , del8
-  , del9
-  , del10
-  , del11
-  , del12
-  , del13
-  , del14
-  , del15  
-  -- * Folding
-  , foldlT
-  , foldrT
-  -- * Currying
-  , uncurryT
-  , curryT) where
+  ( module Data.Tuple,
 
-import Generics.SOP
+    -- * Selection
+    sel,
+    selN,
+
+    -- ** convenience functions
+    sel1,
+    sel2,
+    sel3,
+    sel4,
+    sel5,
+    sel6,
+    sel7,
+    sel8,
+    sel9,
+    sel10,
+    sel11,
+    sel12,
+    sel13,
+    sel14,
+    sel15,
+    lastT,
+
+    -- * Application
+    app,
+    appPoly,
+    appN,
+    appF,
+    mapT,
+    mapPolyT,
+
+    -- ** convenience functions
+    app1,
+    app2,
+    app3,
+    app4,
+    app5,
+    app6,
+    app7,
+    app8,
+    app9,
+    app10,
+    app11,
+    app12,
+    app13,
+    app14,
+    app15,
+
+    -- * Constructing tuples
+    consT,
+    snocT,
+    appendT,
+    reverseT,
+    initT,
+    tailT,
+
+    -- * Insertion
+    ins,
+    insN,
+    ins1,
+    ins2,
+    ins3,
+    ins4,
+    ins5,
+    ins6,
+    ins7,
+    ins8,
+    ins9,
+    ins10,
+    ins11,
+    ins12,
+    ins13,
+    ins14,
+    ins15,
+
+    -- * Deletion
+    del,
+    delN,
+
+    -- ** convenience functions
+    del1,
+    del2,
+    del3,
+    del4,
+    del5,
+    del6,
+    del7,
+    del8,
+    del9,
+    del10,
+    del11,
+    del12,
+    del13,
+    del14,
+    del15,
+
+    -- * Folding
+    foldlT,
+    foldrT,
+
+    -- * Currying
+    uncurryT,
+    curryT,
+  )
+where
+
+import Data.Tuple
 import GHC.Exts
 import GHC.TypeLits
-import Data.Tuple
+import Generics.SOP
 
 class Select s t where
   -- | Takes an n-ary tuple and returns the first element of the requested type
@@ -159,40 +171,51 @@ instance GSelectN (NP I (t ': xs)) Z' t where
 instance GSelectN (NP I xs) n t => GSelectN (NP I (a ': xs)) (S' n) t where
   gselN np _ = gselN (tl np) (Proxy :: Proxy n)
 
-
 -- | Selects the first element in an n-ary tuple
 sel1 :: SelectN s 0 t => s -> t
 sel1 s = selN s (Proxy :: Proxy 0)
+
 sel2 :: SelectN s 1 t => s -> t
 sel2 s = selN s (Proxy :: Proxy 1)
+
 sel3 :: SelectN s 2 t => s -> t
 sel3 s = selN s (Proxy :: Proxy 2)
+
 sel4 :: SelectN s 3 t => s -> t
 sel4 s = selN s (Proxy :: Proxy 3)
+
 sel5 :: SelectN s 4 t => s -> t
 sel5 s = selN s (Proxy :: Proxy 4)
+
 sel6 :: SelectN s 5 t => s -> t
 sel6 s = selN s (Proxy :: Proxy 5)
+
 sel7 :: SelectN s 6 t => s -> t
 sel7 s = selN s (Proxy :: Proxy 6)
+
 sel8 :: SelectN s 7 t => s -> t
 sel8 s = selN s (Proxy :: Proxy 7)
+
 sel9 :: SelectN s 8 t => s -> t
 sel9 s = selN s (Proxy :: Proxy 8)
+
 sel10 :: SelectN s 9 t => s -> t
 sel10 s = selN s (Proxy :: Proxy 9)
+
 sel11 :: SelectN s 10 t => s -> t
 sel11 s = selN s (Proxy :: Proxy 10)
+
 sel12 :: SelectN s 11 t => s -> t
 sel12 s = selN s (Proxy :: Proxy 11)
+
 sel13 :: SelectN s 12 t => s -> t
 sel13 s = selN s (Proxy :: Proxy 12)
+
 sel14 :: SelectN s 13 t => s -> t
 sel14 s = selN s (Proxy :: Proxy 13)
+
 sel15 :: SelectN s 14 t => s -> t
 sel15 s = selN s (Proxy :: Proxy 14)
-
-
 
 -- | Selects the last element of any n-ary tuple
 --
@@ -210,7 +233,7 @@ class TailT s t | s -> t where
 
 instance (GenericNP s rep_s, GenericNP t rep_t, LEQ (LengthT s) 3, GTailT rep_s rep_t) => TailT s t where
   tailT = to_np . gtailT . from_np
-  
+
 class GTailT s t | s -> t where
   gtailT :: s -> t
 
@@ -268,7 +291,7 @@ instance GApp f app (NP I xs) (NP I xs') => GApp f ('False ': app) (NP I (c ': x
 -- ("5",False)
 appPoly :: App (Poly a b) s t => (a -> b) -> s -> t
 appPoly f s = app (poly f) s
-  
+
 class AppN f s (n :: Nat) t | f s n -> t where
   -- | Applies a function to the element at index @n@ in an n-ary tuple.
   appN :: f -> s -> Proxy n -> t
@@ -291,32 +314,46 @@ instance GAppN f (NP I xs) n (NP I xs') => GAppN f (NP I (c ': xs)) (S' n) (NP I
 -- (6,6,7)
 app1 :: AppN f s 0 t => f -> s -> t
 app1 f s = appN f s (Proxy :: Proxy 0)
+
 app2 :: AppN f s 1 t => f -> s -> t
 app2 f s = appN f s (Proxy :: Proxy 1)
+
 app3 :: AppN f s 2 t => f -> s -> t
 app3 f s = appN f s (Proxy :: Proxy 2)
+
 app4 :: AppN f s 3 t => f -> s -> t
 app4 f s = appN f s (Proxy :: Proxy 3)
+
 app5 :: AppN f s 4 t => f -> s -> t
 app5 f s = appN f s (Proxy :: Proxy 4)
+
 app6 :: AppN f s 5 t => f -> s -> t
 app6 f s = appN f s (Proxy :: Proxy 5)
+
 app7 :: AppN f s 6 t => f -> s -> t
 app7 f s = appN f s (Proxy :: Proxy 6)
+
 app8 :: AppN f s 7 t => f -> s -> t
 app8 f s = appN f s (Proxy :: Proxy 7)
+
 app9 :: AppN f s 8 t => f -> s -> t
 app9 f s = appN f s (Proxy :: Proxy 8)
+
 app10 :: AppN f s 9 t => f -> s -> t
 app10 f s = appN f s (Proxy :: Proxy 9)
+
 app11 :: AppN f s 10 t => f -> s -> t
 app11 f s = appN f s (Proxy :: Proxy 10)
+
 app12 :: AppN f s 11 t => f -> s -> t
 app12 f s = appN f s (Proxy :: Proxy 11)
+
 app13 :: AppN f s 12 t => f -> s -> t
 app13 f s = appN f s (Proxy :: Proxy 12)
+
 app14 :: AppN f s 13 t => f -> s -> t
 app14 f s = appN f s (Proxy :: Proxy 13)
+
 app15 :: AppN f s 14 t => f -> s -> t
 app15 f s = appN f s (Proxy :: Proxy 14)
 
@@ -444,7 +481,6 @@ instance {-# OVERLAPPING #-} GInsert Z' a (NP I xs) (NP I (a ': xs)) where
 instance {-# OVERLAPPABLE #-} (b ~ c, GInsert n a (NP I xs) (NP I xs')) => GInsert (S' n) a (NP I (b ': xs)) (NP I (c ': xs')) where
   gins _ a (b :* xs) = b :* gins (Proxy :: Proxy n) a xs
 
-
 class InsertN a s n t | a s n -> t where
   -- | Inserts an element at an index specified position into an n-ary tuple
   insN :: a -> s -> Proxy n -> t
@@ -467,32 +503,46 @@ instance GInsertN a (NP I xs) n (NP I xs') => GInsertN a (NP I (b ': xs)) (S' n)
 -- (5,'c',1,False)
 ins1 :: InsertN a s 0 t => a -> s -> t
 ins1 a s = insN a s (Proxy :: Proxy 0)
+
 ins2 :: InsertN a s 1 t => a -> s -> t
-ins2 a s = insN a s (Proxy :: Proxy 1) 
+ins2 a s = insN a s (Proxy :: Proxy 1)
+
 ins3 :: InsertN a s 2 t => a -> s -> t
-ins3 a s = insN a s (Proxy :: Proxy 2) 
+ins3 a s = insN a s (Proxy :: Proxy 2)
+
 ins4 :: InsertN a s 3 t => a -> s -> t
-ins4 a s = insN a s (Proxy :: Proxy 3) 
+ins4 a s = insN a s (Proxy :: Proxy 3)
+
 ins5 :: InsertN a s 4 t => a -> s -> t
-ins5 a s = insN a s (Proxy :: Proxy 4) 
+ins5 a s = insN a s (Proxy :: Proxy 4)
+
 ins6 :: InsertN a s 5 t => a -> s -> t
-ins6 a s = insN a s (Proxy :: Proxy 5) 
+ins6 a s = insN a s (Proxy :: Proxy 5)
+
 ins7 :: InsertN a s 6 t => a -> s -> t
-ins7 a s = insN a s (Proxy :: Proxy 6) 
+ins7 a s = insN a s (Proxy :: Proxy 6)
+
 ins8 :: InsertN a s 7 t => a -> s -> t
-ins8 a s = insN a s (Proxy :: Proxy 7) 
+ins8 a s = insN a s (Proxy :: Proxy 7)
+
 ins9 :: InsertN a s 8 t => a -> s -> t
-ins9 a s = insN a s (Proxy :: Proxy 8) 
+ins9 a s = insN a s (Proxy :: Proxy 8)
+
 ins10 :: InsertN a s 9 t => a -> s -> t
 ins10 a s = insN a s (Proxy :: Proxy 9)
+
 ins11 :: InsertN a s 10 t => a -> s -> t
 ins11 a s = insN a s (Proxy :: Proxy 10)
+
 ins12 :: InsertN a s 11 t => a -> s -> t
 ins12 a s = insN a s (Proxy :: Proxy 11)
+
 ins13 :: InsertN a s 12 t => a -> s -> t
 ins13 a s = insN a s (Proxy :: Proxy 12)
+
 ins14 :: InsertN a s 13 t => a -> s -> t
 ins14 a s = insN a s (Proxy :: Proxy 13)
+
 ins15 :: InsertN a s 14 t => a -> s -> t
 ins15 a s = insN a s (Proxy :: Proxy 14)
 
@@ -529,40 +579,54 @@ instance GDeleteN (NP I (t ': xs)) Z' (NP I xs) where
   gdelN (_ :* xs) _ = xs
 
 instance GDeleteN (NP I xs) n (NP I xs') => GDeleteN (NP I (a ': xs)) (S' n) (NP I (a ': xs')) where
-  gdelN (a :* xs) _ = a :* gdelN xs (Proxy :: Proxy n) 
+  gdelN (a :* xs) _ = a :* gdelN xs (Proxy :: Proxy n)
 
 -- | Deletes the first element of an n-ary tuple
--- 
+--
 -- >>> del1 ('c',False,5)
 -- (False,5)
 del1 :: DeleteN s 0 t => s -> t
 del1 s = delN s (Proxy :: Proxy 0)
+
 del2 :: DeleteN s 1 t => s -> t
 del2 s = delN s (Proxy :: Proxy 1)
+
 del3 :: DeleteN s 2 t => s -> t
 del3 s = delN s (Proxy :: Proxy 2)
+
 del4 :: DeleteN s 3 t => s -> t
 del4 s = delN s (Proxy :: Proxy 3)
+
 del5 :: DeleteN s 4 t => s -> t
 del5 s = delN s (Proxy :: Proxy 4)
+
 del6 :: DeleteN s 5 t => s -> t
 del6 s = delN s (Proxy :: Proxy 5)
+
 del7 :: DeleteN s 6 t => s -> t
 del7 s = delN s (Proxy :: Proxy 6)
+
 del8 :: DeleteN s 7 t => s -> t
 del8 s = delN s (Proxy :: Proxy 7)
+
 del9 :: DeleteN s 8 t => s -> t
 del9 s = delN s (Proxy :: Proxy 8)
+
 del10 :: DeleteN s 9 t => s -> t
 del10 s = delN s (Proxy :: Proxy 9)
+
 del11 :: DeleteN s 10 t => s -> t
 del11 s = delN s (Proxy :: Proxy 10)
+
 del12 :: DeleteN s 11 t => s -> t
 del12 s = delN s (Proxy :: Proxy 11)
+
 del13 :: DeleteN s 12 t => s -> t
 del13 s = delN s (Proxy :: Proxy 12)
+
 del14 :: DeleteN s 13 t => s -> t
 del14 s = delN s (Proxy :: Proxy 13)
+
 del15 :: DeleteN s 14 t => s -> t
 del15 s = delN s (Proxy :: Proxy 14)
 
@@ -614,7 +678,7 @@ class FlattenT s t | s -> t where
 
 instance (GenericNP s rep_s, GenericNP t rep_t, GFlattenT (AreProducts rep_s) rep_s rep_t) => FlattenT s t where
   flattenT = to_np . gflattenT (Proxy :: Proxy (AreProducts (RepNP s))) . from_np
-  
+
 class GFlattenT (ps :: [Bool]) s t | ps s -> t where
   gflattenT :: Proxy ps -> s -> t
 
@@ -668,7 +732,7 @@ instance GReverseT (NP I xs) (NP I (x ': ys)) zs => GReverseT (NP I (x ': xs)) (
 
 class UnCurryT s t b | s t -> b where
   -- | Converts a curried function to a function that works on n-ary tuples
-  -- 
+  --
   -- >>> uncurryT (\a b c -> a + b + c) (1,2,3)
   -- 6
   uncurryT :: s -> t -> b
@@ -692,13 +756,13 @@ class CurryT s t | s -> t where
   -- 6
   --
   -- Currently, type inference is partially broken for this function
-  curryT :: s -> t 
+  curryT :: s -> t
 
 instance (FuncToGen s (NP I xs -> b), ToFun xs b ~ t, GCurryT (NP I xs -> b) (NP I '[]) xs t) => CurryT s t where
   curryT s = gcurryT (funcToGen s) (Nil :: NP I '[]) (Proxy :: Proxy xs)
 
 class GCurryT s d (p :: [*]) t | s d p -> t where
-  gcurryT :: s -> d -> Proxy p -> t 
+  gcurryT :: s -> d -> Proxy p -> t
 
 instance (b ~ b', ys ~ Reverse xs '[], GReverse (NP I xs) (NP I '[]) (NP I ys)) => GCurryT (NP I ys -> b) (NP I xs) '[] b' where
   gcurryT f d _ = f $ greverse d (Nil :: NP I '[])
@@ -766,14 +830,14 @@ type family GLengthT s where
 
 type family Applicable f s where
   Applicable f (NP I '[]) = '[]
-  Applicable (a -> b)     (NP I (a ': xs)) = 'True  ': Applicable (a -> b)     (NP I xs)
-  Applicable (Poly a b)   (NP I (d ': xs)) = 'True  ': Applicable (Poly a b) (NP I xs)
-  Applicable (a -> b)     (NP I (c ': xs)) = 'False ': Applicable (a -> b)     (NP I xs)
+  Applicable (a -> b) (NP I (a ': xs)) = 'True ': Applicable (a -> b) (NP I xs)
+  Applicable (Poly a b) (NP I (d ': xs)) = 'True ': Applicable (Poly a b) (NP I xs)
+  Applicable (a -> b) (NP I (c ': xs)) = 'False ': Applicable (a -> b) (NP I xs)
 
 type family ApplicableN f s n where
-  ApplicableN (a -> b)     (NP I (a ': xs)) Z'     = '[ 'True ]
-  ApplicableN (Poly a b)   (NP I (d ': xs)) Z'     = '[ 'True ]
-  ApplicableN f            (NP I (a ': xs)) (S' n) = 'False ': ApplicableN f (NP I xs) n
+  ApplicableN (a -> b) (NP I (a ': xs)) Z' = '[ 'True]
+  ApplicableN (Poly a b) (NP I (d ': xs)) Z' = '[ 'True]
+  ApplicableN f (NP I (a ': xs)) (S' n) = 'False ': ApplicableN f (NP I xs) n
 
 data Poly a b where
   Poly :: (a -> b) -> Poly a b
@@ -829,18 +893,18 @@ type family Relation' n m i j where
   Relation' n m i j = Relation' n m (i - 1) (j - 1)
 
 type family ToTuple s where
-  ToTuple (NP I '[a, b]) = (a,b)
-  ToTuple (NP I '[a, b, c]) = (a,b,c)
-  ToTuple (NP I '[a, b, c, d]) = (a,b,c,d)
-  ToTuple (NP I '[a, b, c, d, e]) = (a,b,c,d,e)
-  ToTuple (NP I '[a, b, c, d, e, f]) = (a,b,c,d,e,f)
-  ToTuple (NP I '[a, b, c, d, e, f, g]) = (a,b,c,d,e,f,g)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h]) = (a,b,c,d,e,f,g,h)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i]) = (a,b,c,d,e,f,g,h,i)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j]) = (a,b,c,d,e,f,g,h,i,j)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k]) = (a,b,c,d,e,f,g,h,i,j,k)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l]) = (a,b,c,d,e,f,g,h,i,j,k,l)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m]) = (a,b,c,d,e,f,g,h,i,j,k,l,m)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n]) = (a,b,c,d,e,f,g,h,i,j,k,l,m,n)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o]) = (a,b,c,d,e,f,g,h,i,j,k,l, m,n,o)
-  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) = (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)
+  ToTuple (NP I '[a, b]) = (a, b)
+  ToTuple (NP I '[a, b, c]) = (a, b, c)
+  ToTuple (NP I '[a, b, c, d]) = (a, b, c, d)
+  ToTuple (NP I '[a, b, c, d, e]) = (a, b, c, d, e)
+  ToTuple (NP I '[a, b, c, d, e, f]) = (a, b, c, d, e, f)
+  ToTuple (NP I '[a, b, c, d, e, f, g]) = (a, b, c, d, e, f, g)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h]) = (a, b, c, d, e, f, g, h)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i]) = (a, b, c, d, e, f, g, h, i)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j]) = (a, b, c, d, e, f, g, h, i, j)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k]) = (a, b, c, d, e, f, g, h, i, j, k)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l]) = (a, b, c, d, e, f, g, h, i, j, k, l)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m]) = (a, b, c, d, e, f, g, h, i, j, k, l, m)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n]) = (a, b, c, d, e, f, g, h, i, j, k, l, m, n)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o]) = (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
+  ToTuple (NP I '[a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) = (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)

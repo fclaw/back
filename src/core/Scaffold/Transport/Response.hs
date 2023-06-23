@@ -1,13 +1,13 @@
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 -- |
 -- Generic response that should be used in services. Currently it doesn't
@@ -18,57 +18,63 @@
 -- Module provide 'Response' type and convenient pattern synonyms for
 -- different pattern creation.
 module Scaffold.Transport.Response
-       ( Response(Response, Ok, Warnings, Errors, Error)
-       , Scaffold.AsError(..)
-       , fromValidation
-       , fromEither
-       , fromEithers
-       , liftMaybe
-       ) where
+  ( Response (Response, Ok, Warnings, Errors, Error),
+    Scaffold.AsError (..),
+    fromValidation,
+    fromEither,
+    fromEithers,
+    liftMaybe,
+  )
+where
 
-import Scaffold.Transport.Error as Scaffold
 import Control.Lens hiding ((.=))
 import Data.Aeson.Extended hiding (Error)
+import Data.Swagger hiding (Response)
 import qualified Data.Text as T
 import Data.Typeable
-import Data.Swagger hiding (Response)
-import Validation
 import GHC.Exts
 import GHC.Generics
+import Scaffold.Transport.Error as Scaffold
 import Test.QuickCheck.Extended
+import Validation
 
 --  Generic response for sirius services.
-data Response a
-  = Response
-  { responseResult :: Maybe a
-    -- ^ Computation result.
-  , responseWarnings :: [Error]
-  , responseErrors :: [Error]
-  } deriving stock Show
-    deriving stock Typeable
-    deriving stock Generic
-    deriving stock Foldable
-    deriving stock Traversable
-    deriving stock Functor
+data Response a = Response
+  { -- | Computation result.
+    responseResult :: Maybe a,
+    responseWarnings :: [Error],
+    responseErrors :: [Error]
+  }
+  deriving stock (Show)
+  deriving stock (Typeable)
+  deriving stock (Generic)
+  deriving stock (Foldable)
+  deriving stock (Traversable)
+  deriving stock (Functor)
 
-pattern Ok :: a ->  Response a
-pattern Ok x = Response (Just x) ([]::[Scaffold.Error]) ([]::[Scaffold.Error])
+pattern Ok :: a -> Response a
+pattern Ok x = Response (Just x) ([] :: [Scaffold.Error]) ([] :: [Scaffold.Error])
+
 pattern Warnings :: a -> [Error] -> Response a
-pattern Warnings x warns = Response (Just x) warns ([]::[Scaffold.Error])
+pattern Warnings x warns = Response (Just x) warns ([] :: [Scaffold.Error])
+
 pattern Errors :: [Error] -> Response a
 pattern Errors errs = Response Nothing [] errs
+
 pattern Error :: Error -> Response a
 pattern Error err = Response Nothing [] [err]
 
 instance ToJSON a => ToJSON (Response a) where
   toJSON (Response Nothing [] []) = object ["success" .= Null]
-  toJSON (Response Nothing ys xs) = object
-    $ (if null ys then id else (("warnings".=ys):))
-      (["errors".=xs | not (null xs)])
-  toJSON (Response (Just x) ys xs) = object
-    $ (if null ys then id else (("warning".=ys):))
-    . (if null xs then id else (("errors".=xs):))
-    $ ["success" .= x ]
+  toJSON (Response Nothing ys xs) =
+    object $
+      (if null ys then id else (("warnings" .= ys) :))
+        (["errors" .= xs | not (null xs)])
+  toJSON (Response (Just x) ys xs) =
+    object
+      $ (if null ys then id else (("warning" .= ys) :))
+        . (if null xs then id else (("errors" .= xs) :))
+      $ ["success" .= x]
 
 instance FromJSON a => FromJSON (Response a) where
   parseJSON = withObject "response" $ \o -> do
@@ -82,15 +88,18 @@ instance (ToSchema a, Typeable a) => ToSchema (Response a) where
     eSchema <- declareSchemaRef (Proxy @[Error])
     aSchema <- declareSchemaRef (Proxy @a)
     let ident = T.pack $ show (typeRep (Proxy @a))
-    pure $ NamedSchema (Just $ "Response." <> ident) $ mempty
-         & type_ ?~ SwaggerObject
-         & properties .~ fromList
-             [ ("success", aSchema)
-             , ("warnings", eSchema)
-             , ("errors", eSchema) ]
+    pure $
+      NamedSchema (Just $ "Response." <> ident) $
+        mempty
+          & type_ ?~ SwaggerObject
+          & properties
+            .~ fromList
+              [ ("success", aSchema),
+                ("warnings", eSchema),
+                ("errors", eSchema)
+              ]
 
 instance Arbitrary a => Arbitrary (Response a) where arbitrary = fmap (\x -> Response x [] []) arbitrary
-
 
 fromValidation :: Validation [Scaffold.Error] a -> Response a
 fromValidation v = either Errors Ok $ validationToEither v

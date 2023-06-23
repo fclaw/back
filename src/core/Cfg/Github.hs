@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 
-module Cfg.Github (configure) where 
+module Cfg.Github (configure) where
 
-import "github" OpenAPI.Configuration
-import "github" OpenAPI.Common (Configuration (..))
 import qualified Data.Text as T
+import "github" OpenAPI.Common (Configuration (..))
+import "github" OpenAPI.Configuration
 import "sendgrid" OpenAPI.SecuritySchemes
 
 type ApiKey = T.Text
 
 configure :: ApiKey -> Configuration
-configure key = 
-  defaultConfiguration 
-  { configSecurityScheme = 
-    apiKeyInHeaderAuthenticationSecurityScheme ("Bearer " <> key) 
-  }
+configure key =
+  defaultConfiguration
+    { configSecurityScheme =
+        apiKeyInHeaderAuthenticationSecurityScheme ("Bearer " <> key)
+    }

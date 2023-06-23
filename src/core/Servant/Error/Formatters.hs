@@ -4,4 +4,4 @@ import qualified Servant.Error.RouteNotFound404 as RouteNotFound404
 import Servant.Server.Internal.ErrorFormatter
 
 formatters :: ErrorFormatters
-formatters = defaultErrorFormatters { notFoundErrorFormatter = RouteNotFound404.formatter }
+formatters = defaultErrorFormatters {notFoundErrorFormatter = RouteNotFound404.formatter}

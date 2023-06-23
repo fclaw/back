@@ -1,22 +1,22 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Scaffold.Api.Protected (AdminApi (..)) where
 
-import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
-import Servant.API.Extended ( Get, type (:>), JSON )
-import Scaffold.Transport.Response ( Response )
 import Data.Time (UTCTime)
+import Scaffold.Transport.Response (Response)
+import Servant.API.Extended (Get, JSON, type (:>))
+import Servant.API.Generic (Generic, GenericMode (type (:-)))
 
-newtype AdminApi route =
-        AdminApi {
-          _adminApiTest
-          :: route
-          :- "test"
+newtype AdminApi route = AdminApi
+  { _adminApiTest ::
+      route
+        :- "test"
           :> Get '[JSON] (Response UTCTime)
-        } deriving stock Generic
+  }
+  deriving stock (Generic)

@@ -1,34 +1,36 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Data.Aeson.Extended
-       ( module Data.Aeson
-       , aesonOptions
-       , parsejsonoundedEnum
-       , deriveJSON'
-       , deriveJSON
-       , toLowerCamelCase
-       , splitCamelWords
-       ) where
+  ( module Data.Aeson,
+    aesonOptions,
+    parsejsonoundedEnum,
+    deriveJSON',
+    deriveJSON,
+    toLowerCamelCase,
+    splitCamelWords,
+  )
+where
 
-import           Data.Aeson
-import           Data.Aeson.TH (deriveJSON)
-import           Data.Aeson.Types
-import           Language.Haskell.TH (Dec, Name, Q, nameBase)
-import           Data.Char (isDigit, isUpper, toLower)
+import Data.Aeson
+import Data.Aeson.TH (deriveJSON)
+import Data.Aeson.Types
+import Data.Char (isDigit, isUpper, toLower)
+import Language.Haskell.TH (Dec, Name, Q, nameBase)
 
 -- | Options to derive @'ToJSON'@/@'FromJSON'@ instances.
 --
 -- @aesonOptions prefix@ drops @prefix@ for every field and converts
 -- what's left to @lowerCamelCase@.
 aesonOptions :: String -> Options
-aesonOptions prefix = defaultOptions
-  { fieldLabelModifier = nameModifier prefix
-  , constructorTagModifier = nameModifier prefix
-  , sumEncoding = ObjectWithSingleField
-  , omitNothingFields = True
-  }
+aesonOptions prefix =
+  defaultOptions
+    { fieldLabelModifier = nameModifier prefix,
+      constructorTagModifier = nameModifier prefix,
+      sumEncoding = ObjectWithSingleField,
+      omitNothingFields = True
+    }
 
 -- | Default name modifier.
 -- Transforms to @lowerCamelCase@ and cuts longest common whole-word prefix.
@@ -46,13 +48,13 @@ aesonOptions prefix = defaultOptions
 nameModifier :: String -> String -> String
 nameModifier prefix name = concat (lowerFirstWord suffix)
   where
-    (_, _, suffix) = commonPrefixOn
-      (map toLower)
-      (splitCamelWords prefix)
-      (splitCamelWords name)
+    (_, _, suffix) =
+      commonPrefixOn
+        (map toLower)
+        (splitCamelWords prefix)
+        (splitCamelWords name)
     lowerFirstWord [] = []
     lowerFirstWord (w : ws) = map toLower w : ws
-
 
 -- | Strip longest common prefix of to lists.
 --
@@ -81,7 +83,8 @@ commonPrefixOn :: Eq b => (a -> b) -> [a] -> [a] -> ([a], [a], [a])
 commonPrefixOn f (x : xs) (y : ys)
   | f x == f y = (x : prefix, xs', ys')
   | otherwise = ([], x : xs, y : ys)
-  where (prefix, xs', ys') = commonPrefixOn f xs ys
+  where
+    (prefix, xs', ys') = commonPrefixOn f xs ys
 commonPrefixOn _ xs ys = ([], xs, ys)
 
 -- | Convert @CamelCase@ to @lowerCamelCase@.
@@ -100,8 +103,9 @@ commonPrefixOn _ xs ys = ([], xs, ys)
 -- NOW <command line>: /nix/store/jsp3h3wpzc842j0rz61m5ly71ak6qgdn-glibc-2.32-54/lib/libc.so.6: symbol _dl_fatal_printf version GLIBC_PRIVATE not defined in file ld-linux-x86-64.so.2 with link time reference
 toLowerCamelCase :: String -> String
 toLowerCamelCase = concat . lowerFirstWord . splitCamelWords
-  where lowerFirstWord [] = []
-        lowerFirstWord (w : ws) = map toLower w : ws
+  where
+    lowerFirstWord [] = []
+    lowerFirstWord (w : ws) = map toLower w : ws
 
 -- | Split @CamelCase@ name into its constituent words.
 --
@@ -121,20 +125,21 @@ splitCamelWords = reverse . splitWordsReversed . reverse
     splitWordsReversed rs
       | null ls = reverse us : splitWordsReversed urs
       | otherwise = case lrs of
-        [] -> [reverse ls]
-        (c : cs) -> (c : reverse ls) : splitWordsReversed cs
+          [] -> [reverse ls]
+          (c : cs) -> (c : reverse ls) : splitWordsReversed cs
       where
         (ls, lrs) = break isBorder rs
         (us, urs) = span isBorder rs
         isBorder c = isUpper c || isDigit c
 
 -- | Helper for the parsing of the bounded values.
-parsejsonoundedEnum
-  :: forall a
-   . (Bounded a, Enum a)
-  => String  -- ^ Value description to be printed in error messages.
-  -> Value
-  -> Parser a
+parsejsonoundedEnum ::
+  forall a.
+  (Bounded a, Enum a) =>
+  -- | Value description to be printed in error messages.
+  String ->
+  Value ->
+  Parser a
 parsejsonoundedEnum err js = do
   n <- parseJSON js
   if minN <= n && n <= maxN
@@ -144,9 +149,15 @@ parsejsonoundedEnum err js = do
     minN = fromEnum (minBound @a)
     maxN = fromEnum (maxBound @a)
     errorMessage n =
-      "illegal " ++ err ++ ": " ++ show n ++
-      " (expected a value between " ++
-      show minN ++ " and " ++ show maxN ++ ")"
+      "illegal "
+        ++ err
+        ++ ": "
+        ++ show n
+        ++ " (expected a value between "
+        ++ show minN
+        ++ " and "
+        ++ show maxN
+        ++ ")"
 
 -- | Derive 'ToJSON' and 'FromJSON'
 -- with Template Haskell using 'aesonOptions'.

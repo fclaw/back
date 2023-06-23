@@ -1,22 +1,22 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Database.Migration.Test (migrate) where
 
+import Data.ByteString
+import Data.Foldable
+import Data.String.Interpolate
 import Hasql.Session
 import TH.Mk
-import Data.String.Interpolate
-import Data.Foldable
-import Data.ByteString
 
 $mkMigrationTest
 
 migrate :: Session ()
 migrate = sql $ exts <> fold list
-  where 
+  where
     exts =
-     [i|create extension postgres_fdw;
+      [i|create extension postgres_fdw;
         create extension hstore;
         create extension ltree;
         create extension pg_trgm;|]

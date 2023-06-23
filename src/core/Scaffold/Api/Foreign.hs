@@ -1,25 +1,25 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Scaffold.Api.Foreign
-  (ForeignApi (..)
-  , module SendGrid
-  ) where
+  ( ForeignApi (..),
+    module SendGrid,
+  )
+where
 
 import Scaffold.Api.Foreign.SendGrid as SendGrid
+import Servant.API.Extended (AsApi, ToServant, type (:>))
+import Servant.API.Generic (Generic, GenericMode (type (:-)))
 
-import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
-import Servant.API.Extended ( type (:>), AsApi, ToServant )
-
-newtype ForeignApi route =
-        ForeignApi {
-          _foreignApiSendGrid
-          :: route
-          :- "sendgrid"
+newtype ForeignApi route = ForeignApi
+  { _foreignApiSendGrid ::
+      route
+        :- "sendgrid"
           :> ToServant SendGridApi AsApi
-        } deriving stock Generic
+  }
+  deriving stock (Generic)

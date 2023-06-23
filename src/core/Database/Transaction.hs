@@ -1,72 +1,75 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Database.Transaction
-      ( transactionViolationError
-      , katipTransactionViolationError
-      , transaction
-      , katipTransaction
-      , statement
-      , SessionR
-      , ParamsShow (..)
-      , ask
-      , lift
-      ) where
+  ( transactionViolationError,
+    katipTransactionViolationError,
+    transaction,
+    katipTransaction,
+    statement,
+    SessionR,
+    ParamsShow (..),
+    ask,
+    lift,
+  )
+where
 
-import Scaffold.Transport.Error
-
-import Hasql.TH
-import KatipController
-import GHC.Exception.Type
-import Data.Pool
-import Katip
-import qualified Hasql.Session as Hasql
-import Hasql.Session (Session, QueryError (..), CommandError (..), ResultError (..))
-import Control.Monad.IO.Class
-import Control.Monad.Catch
-import Control.Monad.Reader
-import qualified Hasql.Connection as Hasql
-import qualified Hasql.Statement as Hasql
 import Control.Exception (throwIO)
 import Control.Lens
 import Control.Lens.Iso.Extended
-import Data.Int
-import Data.List
-import qualified Data.ByteString.Char8 as B
-import Data.Generics.Sum.Constructors
-import Data.Generics.Product.Positions
-import GHC.Generics
-import PostgreSQL.ErrorCodes
-import qualified Data.Text as T
-import qualified Data.Vector.Extended as V
+import Control.Monad.Catch
+import Control.Monad.IO.Class
+import Control.Monad.Reader
 -- import Data.Aeson.WithField
 -- import Data.Coerce
-import Data.Word
+
 import Data.Aeson
+import qualified Data.ByteString.Char8 as B
+import Data.Generics.Product.Positions
+import Data.Generics.Sum.Constructors
+import Data.Int
+import Data.List
+import Data.Pool
+import qualified Data.Text as T
 import Data.Time.Clock
+import qualified Data.Vector.Extended as V
+import Data.Word
+import GHC.Exception.Type
+import GHC.Generics
+import qualified Hasql.Connection as Hasql
+import Hasql.Session (CommandError (..), QueryError (..), ResultError (..), Session)
+import qualified Hasql.Session as Hasql
+import qualified Hasql.Statement as Hasql
+import Hasql.TH
+import Katip
+import KatipController
+import PostgreSQL.ErrorCodes
+import Scaffold.Transport.Error
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError
-  deriving Show
+  deriving (Show)
 
 instance Exception QueryErrorWrapper
 
 type SessionR a = ReaderT KatipLoggerIO Session a
 
 deriving instance Generic Hasql.QueryError
+
 deriving instance Generic CommandError
+
 deriving instance Generic ResultError
 
 data ViolationError = ForeignKeyVlolation | UniqueViolation
-  deriving Show
+  deriving (Show)
 
 instance AsError ViolationError where
   asError ForeignKeyVlolation = asError @T.Text "foreign key violation"
@@ -109,9 +112,11 @@ transactionViolationError pool logger session =
         let withBegin = do
               result <-
                 onException
-                (release action)
-                (do logger CriticalS "error while performing sql"
-                    Hasql.run (Hasql.sql [uncheckedSql|rollback|]) conn)
+                  (release action)
+                  ( do
+                      logger CriticalS "error while performing sql"
+                      Hasql.run (Hasql.sql [uncheckedSql|rollback|]) conn
+                  )
               cm <- Hasql.run (Hasql.sql [uncheckedSql|commit|]) conn
               traverse (const (pure result)) cm
         traverse (const withBegin) bg
@@ -121,48 +126,64 @@ handleDBResult (Left e) =
   case codem of
     Just code ->
       if code == foreign_key_violation
-      then return $ Left ForeignKeyVlolation
-      else if code == unique_violation
-      then return $ Left UniqueViolation
-      else throwIO $ QueryErrorWrapper e
+        then return $ Left ForeignKeyVlolation
+        else
+          if code == unique_violation
+            then return $ Left UniqueViolation
+            else throwIO $ QueryErrorWrapper e
     Nothing -> throwIO $ QueryErrorWrapper e
-  where codem = e^?position @3._Ctor @"ResultError"._Ctor @"ServerError"._1
-handleDBResult (Right  val) = return $ Right val
+  where
+    codem = e ^? position @3 . _Ctor @"ResultError" . _Ctor @"ServerError" . _1
+handleDBResult (Right val) = return $ Right val
 
 transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
-transaction pool logger session = transactionViolationError pool logger session >>= either throwIO  pure
+transaction pool logger session = transactionViolationError pool logger session >>= either throwIO pure
 
 class ParamsShow a where
   render :: a -> String
 
 instance ParamsShow () where render () = mempty
+
 instance ParamsShow Int32 where render = show
+
 instance ParamsShow Int64 where render = show
+
 instance ParamsShow Word64 where render = show
+
 instance ParamsShow Double where render = show
+
 instance ParamsShow B.ByteString where render = B.unpack
+
 instance ParamsShow T.Text where render = T.unpack
+
 instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render
+
 instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where
   render (x, y) = render x <> ", " <> render y
+
 instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where
-  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3)
+  render x = render (x ^. _1) <> ", " <> render (x ^. _2) <> ", " <> render (x ^. _3)
+
 instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where
-  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)
+  render x = render (x ^. _1) <> ", " <> render (x ^. _2) <> ", " <> render (x ^. _3) <> ", " <> render (x ^. _4)
+
 instance ParamsShow a => ParamsShow [a] where
   render xs = intercalate ", " $ map render xs
+
 instance ParamsShow a => ParamsShow (V.Vector a) where
   render v = intercalate ", " $ map render (V.toList v)
+
 -- instance ParamsShow a => ParamsShow (OnlyField symb a) where
 --  render = render . coerce @_ @a
 instance ParamsShow Value where
   render = show
+
 instance ParamsShow UTCTime where render = show
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do
   logger <- ask
-  liftIO $ logger DebugS (ls (sql <> " { params: [" <> (render a^.stext.textbs)) <> "] }")
+  liftIO $ logger DebugS (ls (sql <> " { params: [" <> (render a ^. stext . textbs)) <> "] }")
   lift $ Hasql.statement a s
 
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipControllerM a

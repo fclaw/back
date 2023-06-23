@@ -3,9 +3,9 @@
 
 module Scaffold.Transport.Model.File (Hash (..), Name (..), Mime (..), UnicodeText (..), Bucket (..)) where
 
-import Test.QuickCheck.Extended
-import Database.Transaction
 import Data.Text.Extended
+import Database.Transaction
+import Test.QuickCheck.Extended
 
 newtype Hash = Hash UnicodeText
   deriving newtype (Arbitrary, ParamsShow)
