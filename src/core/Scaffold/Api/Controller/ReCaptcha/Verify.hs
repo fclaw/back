@@ -53,7 +53,12 @@ instance ToSchema Token
 --   "hostname": string,         // the hostname of the site where the reCAPTCHA was solved
 --   "error-codes": [...]        // optional
 -- }
-data ReCaptcha = ReCaptcha { success :: !Bool, errors :: !(Maybe [Text]) }
+data ReCaptcha = 
+     ReCaptcha 
+     { success :: !Bool
+     , errors :: !(Maybe [Text])
+     , host :: !Text 
+     }
   deriving stock Generic
   deriving stock Show
   deriving (ToJSON)
@@ -66,6 +71,7 @@ instance FromJSON ReCaptcha where
     withObject "ReCaptchaResp" $ \o -> do
       success <- o .: "success"
       errors <- o .:? "error-codes"
+      host <- o .: "hostname"
       pure $ ReCaptcha {..}
 
 deriveToSchemaFieldLabelModifier ''ReCaptcha [| 
