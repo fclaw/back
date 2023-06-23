@@ -8,7 +8,7 @@
 
 module Scaffold.Api.ReCaptcha (ReCaptchaApi (..)) where
 
-import Scaffold.Api.Controller.ReCaptcha.Verify (Token)
+import Scaffold.Api.Controller.ReCaptcha.Verify (Token, ReCaptcha)
 import Scaffold.Transport.Response ( Response )
 
 import Servant.API.Generic ( Generic, GenericMode(type (:-)) )
@@ -21,5 +21,5 @@ newtype ReCaptchaApi route =
           :: route
           :- "verify"
           :> ReqBody '[JSON] Token
-          :> Post '[JSON] (Response Bool)
+          :> Post '[JSON] (Response ReCaptcha)
         } deriving stock Generic
