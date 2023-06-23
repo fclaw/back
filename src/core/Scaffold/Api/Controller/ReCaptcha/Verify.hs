@@ -54,7 +54,6 @@ data ReCaptcha =
      ReCaptcha 
      { success :: !Bool
      , errors :: !(Maybe [Text])
-     , host :: !Text 
      }
   deriving stock Generic
   deriving stock Show
@@ -68,20 +67,17 @@ instance FromJSON ReCaptcha where
     withObject "ReCaptchaResp" $ \o -> do
       success <- o .: "success"
       errors <- o .:? "error-codes"
-      host <- o .: "hostname"
       pure $ ReCaptcha {..}
 
 instance ToSchema ReCaptcha where
   declareNamedSchema _ = do
     success <- declareSchemaRef (Proxy @Bool)
     errors <- declareSchemaRef (Proxy @(Maybe [Text]))
-    host <- declareSchemaRef (Proxy @Text)
     let ident = pack $ show (typeRep (Proxy @ReCaptcha))
     pure $ NamedSchema (Just ident) $ mempty
          & type_ ?~ SwaggerObject
          & properties .~ fromList
-             [ ("success", success)
-             , ("host", host) ]
+             [ ("success", success) ]
 
 controller :: Token -> KatipControllerM (Response ReCaptcha)
 controller token = do
