@@ -55,6 +55,7 @@ instance ToSchema Token
 -- }
 data ReCaptcha = ReCaptcha { success :: !Bool, errors :: !(Maybe [Text]) }
   deriving stock Generic
+  deriving stock Show
   deriving (ToJSON)
     via WithOptions 
       '[ FieldLabelModifier '[ UserDefined ToLower, UserDefined (StripConstructor ReCaptcha)]] 
@@ -93,5 +94,6 @@ controller token = do
       let toEither ReCaptcha { errors = Just xs } = Left xs
           toEither x@ReCaptcha { success } = Right x
       pure $ first (flip (:) [] . pack) (eitherDecodeStrict @ReCaptcha (resp^.bytesLazy)) >>= toEither
+  $(logTM) DebugS $ logStr $ "captcha resp --> " <> show resp     
   when (isNothing resp) $ $(logTM) ErrorS "captcha key hasn't been found. skip"
   return $ maybe (Error (asError @Text "captcha verification cannot be fetched")) fromEithers resp  
