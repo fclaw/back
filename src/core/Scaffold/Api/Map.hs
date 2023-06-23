@@ -13,6 +13,7 @@ module Scaffold.Api.Map
        , module Front
        , module Public
        , module Foreign
+       , module ReCaptcha
        ) where
 
 import Scaffold.Api.File as File
@@ -20,7 +21,8 @@ import Scaffold.Api.Protected as Protected
 import Scaffold.Api.User as User
 import Scaffold.Api.Frontend as Front
 import Scaffold.Api.Public as Public
-import Scaffold.Api.Foreign as Foreign 
+import Scaffold.Api.Foreign as Foreign
+import Scaffold.Api.ReCaptcha as ReCaptcha 
 import Scaffold.Auth
 
 import Servant.API.Generic
@@ -66,5 +68,10 @@ data HttpApi route =
        :: route
        :- Tags "Foreign"
        :> "foreign"
-       :> ToServant ForeignApi AsApi  
+       :> ToServant ForeignApi AsApi
+     , _httpApiReCaptcha
+       :: route
+       :- Tags "ReCaptcha"
+       :> "captcha"
+       :> ToServant ReCaptchaApi AsApi  
      } deriving stock Generic

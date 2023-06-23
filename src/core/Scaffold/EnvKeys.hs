@@ -36,7 +36,8 @@ data EnvKeys =
      EnvKeys 
      { envKeysSendgrid :: !(Maybe T.Text)
      , envKeysTelegramBot :: !(Maybe T.Text)
-     , envKeysGithub :: !(Maybe ReposCreds) }
+     , envKeysGithub :: !(Maybe ReposCreds)
+     , envKeysCaptchaKey :: !(Maybe T.Text) }
   deriving stock Generic
   deriving stock Show
   deriving FromJSON

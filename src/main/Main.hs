@@ -264,8 +264,10 @@ main = do
         let cred_new = flip MapLazy.map creds_old $ \x -> (Github.configure (Scaffold.EnvKeys.key x), x)
         return cred_new;
 
+  let captcha = envKeys >>= envKeysCaptchaKey
+
   let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid github
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram sendgrid github captcha
 
   let runApp le = runKatipContextT le (mempty @LogContexts) mempty $ App.run appCfg
   bracket env closeScribes $ void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp

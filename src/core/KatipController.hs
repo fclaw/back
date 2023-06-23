@@ -34,6 +34,7 @@ module KatipController
        , hasqlDbPool
        , conn
        , telegram
+       , captchaKey
          -- * run
        , runKatipController
          -- * re-export
@@ -97,7 +98,8 @@ data KatipEnv =
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: !Telegram.Service
      , katipEnvSendGrid :: !(Maybe (SendGrid, SendGrid.Configuration)) 
-     , katipEnvGithub :: !(Maybe (M.Map T.Text (Github.Configuration, Creds))) }
+     , katipEnvGithub :: !(Maybe (M.Map T.Text (Github.Configuration, Creds)))
+     , katipEnvCaptchaKey :: !(Maybe T.Text) }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 

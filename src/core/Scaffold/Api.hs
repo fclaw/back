@@ -20,6 +20,7 @@ module Scaffold.Api
        , PublicApi (..)
        , SendGridApi (..)
        , ForeignApi (..)
+       , ReCaptchaApi (..)
        , api
        , swaggerHttpApi
        ) where

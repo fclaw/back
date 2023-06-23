@@ -23,6 +23,7 @@ import qualified Scaffold.Api.Controller.SendGrid.SendMail as SendGrid.Send
 import qualified Scaffold.Api.Controller.Frontend.Translate as Frontend.Translate
 import qualified Scaffold.Api.Controller.Frontend.GetCookies as Frontend.GetCookies
 import qualified Scaffold.Api.Controller.Frontend.GetMeta as Frontend.GetMeta
+import qualified Scaffold.Api.Controller.ReCaptcha.Verify as ReCaptcha.Verify
 import Servant.RawM.Server ()
 import Scaffold.Auth
 import Scaffold.Transport.Response
@@ -63,7 +64,8 @@ httpApi =
               wwwAuthenticatedErr 
               "only for authorized personnel" 
   , _httpApiPublic = toServant public
-  , _httpApiForeign = toServant _foreign }
+  , _httpApiForeign = toServant _foreign
+  , _httpApiReCaptcha = toServant captcha }
 
 file :: FileApi (AsServerT KatipControllerM)
 file =
@@ -171,7 +173,7 @@ public =
 _foreign :: ForeignApi (AsServerT KatipControllerM)
 _foreign = ForeignApi { _foreignApiSendGrid = toServant sendgrid }
 
-sendgrid :: SendGridApi  (AsServerT KatipControllerM)
+sendgrid :: SendGridApi (AsServerT KatipControllerM)
 sendgrid = 
   SendGridApi
   { _sendGridApiSendMail =
@@ -179,3 +181,12 @@ sendgrid =
     . katipAddNamespace
     (Namespace ["sendgrid", "send"])
     . SendGrid.Send.controller }
+
+captcha :: ReCaptchaApi (AsServerT KatipControllerM)
+captcha = 
+  ReCaptchaApi
+  { _reCaptchaApiVerify =
+    flip logExceptionM ErrorS
+    . katipAddNamespace
+    (Namespace ["captcha", "validate"])
+    . ReCaptcha.Verify.controller }

@@ -53,6 +53,7 @@ ARG github_tth_main_key
 ARG github_tth_css
 ARG mute_500
 ARG env_yaml
+ARG env_captcha_key
 
 ENV MUTE_500 ${mute_500}
 ENV YAML_ENV ${env_yaml} 
@@ -64,7 +65,7 @@ WORKDIR /server
 
 RUN echo \
 "sendgrid: $sendgrid_key\n"\
-"telegramBot: $telegram_bot_key\n"\
+"telegrambot: $telegram_bot_key\n"\
 "github:\n"\
 "   frontDocs:\n"\
 "      repo: turkish-trade-house-docs\n"\ 
@@ -78,6 +79,7 @@ RUN echo \
 "      repo: turkish-trade-house-style-and-css\n"\
 "      key: $github_tth_css\n"\
 "      resources: []\n"\
+"captchakey: $env_captcha_key"\
 > /server/env.yaml
 
 COPY --from=server-build --chown=nix:nix /build/bin /server/bin

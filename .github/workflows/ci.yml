@@ -105,6 +105,7 @@ jobs:
             github_tth_css=${{ vars.REPO_GITHUB_KEY_TTH_CSS }}
             mute_500=${{ vars.MUTE_500 }}
             env_yaml=${{ vars.ENV_YAML }}
+            env_captcha_key=${{ vars.ENV_CAPTCHA_KEY }}
           context: .
           file: ./Dockerfile
           push: true
