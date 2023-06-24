@@ -45,11 +45,12 @@ import OpenAPI.Operations.Git_get_ref
 import OpenAPI.Operations.Repos_get_content
 import OpenAPI.Types.GitRef
 import Scaffold.Api.Controller.Frontend.GetCookies (cookieTitle)
-import Scaffold.Api.Controller.Frontend.Translate (Lang (..), Location, handleResp)
+import Scaffold.Api.Controller.Frontend.Translate (Lang (..), Location, handleResp, handleRespYaml)
 import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
 import Scaffold.EnvKeys (repo, resources)
 import Scaffold.Transport.Id
 import Scaffold.Transport.Response
+import Data.Default.Class.Extended ()
 
 newtype Home = Home T.Text
   deriving stock (Generic)
@@ -97,13 +98,42 @@ deriveToSchemaFieldLabelModifier
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
+
+data Cfg = Cfg 
+     { cfgTelegramBot :: !T.Text
+     , cfgTelegramChat :: !T.Text
+     , cfgTelegramHost  :: !T.Text
+     , cfgToTelegram :: !Bool
+     , cfgScaffoldHost :: !T.Text
+     , cfgCssLink :: !T.Text
+     , cfgCssFiles  :: ![T.Text]
+     , cfgIsCaptcha :: !Bool
+     }
+  deriving stock (Generic)
+  deriving
+    (ToJSON, FromJSON)
+    via WithOptions
+          '[FieldLabelModifier '[UserDefined FirstLetterToLower,  UserDefined (StripConstructor Cfg)]]
+          Cfg
+
+instance Default Cfg
+
+deriveToSchemaFieldLabelModifier
+  ''Cfg
+  [|
+    \s ->
+      let (head : tail) = show (typeRep (Proxy @Cfg))
+       in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
+    |]
+
 data Init = Init
   { content :: !Content,
     shaCommit :: !T.Text,
     shaCommitCss :: !T.Text,
     lang :: ![Lang],
     page :: ![Location],
-    cookies :: ![T.Text]
+    cookies :: ![T.Text],
+    cfg :: !(Maybe Cfg)
   }
   deriving stock (Generic)
   deriving
@@ -122,7 +152,7 @@ deriveToSchemaFieldLabelModifier
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
-defInit = Init def def def def def def
+defInit = Init def def def def def def def
 
 controller :: Maybe (Id "browserIdent") -> KatipControllerM (Response Init)
 controller _ = do
@@ -134,20 +164,22 @@ controller _ = do
       forConcurrently
         (reqXs (repo (snd docs_repo)) (resources (snd docs_repo)))
         (liftIO . runWithConfiguration (fst docs_repo) . repos_get_content)
-    let res_docs_repo = sequence $ map handleResp resp_frontDocs
-
+  
     -- front
     let front_repo = repoXs Map.! "front"
     resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef "master" (repo (snd front_repo)))
-
+    resp_cfg <- for (reqXs (repo (snd front_repo)) (resources (snd front_repo))) 
+                    (liftIO . runWithConfiguration (fst front_repo) . repos_get_content)
+  
     -- css
     let css_repo = repoXs Map.! "frontCSS"
     resp_css <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst css_repo) $ git_get_ref (mkGitRef "main" (repo (snd css_repo)))
 
     let mkInit = do
-          [homeCnt, aboutCnt, serviceCnt] <- res_docs_repo
+          [homeCnt, aboutCnt, serviceCnt] <- sequence $ map handleResp resp_frontDocs
           shaCommit <- resp_front
           shaCommitCss <- resp_css
+          cfg <- sequence $ map (handleRespYaml @Cfg) resp_cfg
           pure $
             Init
               ( def
@@ -161,6 +193,7 @@ controller _ = do
               [English .. Turkish]
               [Tr.Home .. Tr.Service]
               [cookieTitle]
+              (case cfg of [x] -> Just x; _ -> Nothing)
 
     case mkInit of
       Right init -> return $ Ok init
@@ -183,5 +216,4 @@ handleRespFront resp =
     else Left $ show (responseBody resp) ^. stext
 
 reqXs repo = map (flip (mkRepos_get_contentParameters "fclaw") repo)
-
 mkGitRef branch = mkGit_get_refParameters "fclaw" ("heads/" <> branch)

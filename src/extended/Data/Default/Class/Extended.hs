@@ -19,3 +19,6 @@ instance Default BL.ByteString where
   def = BL.empty
 
 instance Default a => Default (V.Vector a) where def = V.replicate 10 def
+
+instance Default Bool where
+  def = False

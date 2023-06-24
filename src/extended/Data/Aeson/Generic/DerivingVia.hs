@@ -26,7 +26,62 @@ data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
                         ]
                         OtherConfig
 -}
-{-# LANGUAGE ConstraintKinds #-}
+{-
+data MyConfig = MyConfig { mcNameOfProcess :: String
+                         , mcArgsToProcess :: [String]
+                         }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "_" , Drop 2]
+                        , ConstructorTagModifier '[CamelTo2 "_"]
+                        ]
+                        MyConfig
+
+data Init
+instance Reifies Init (String -> String) where
+  reflect _ = init
+
+data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
+                               , otrArgsToProcess :: [String]
+                               }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "-"]
+                        , ConstructorTagModifier '[CamelTo2 "-", UserDefined Init]
+                        , SumEnc                  TwoElemArr
+                        , TagSingleConstructors  'True
+                        , OmitNothingFields      'True
+                        ]
+                        OtherConfig
+-}
+{-
+data MyConfig = MyConfig { mcNameOfProcess :: String
+                         , mcArgsToProcess :: [String]
+                         }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "_" , Drop 2]
+                        , ConstructorTagModifier '[CamelTo2 "_"]
+                        ]
+                        MyConfig
+
+data Init
+instance Reifies Init (String -> String) where
+  reflect _ = init
+
+data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
+                               , otrArgsToProcess :: [String]
+                               }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "-"]
+                        , ConstructorTagModifier '[CamelTo2 "-", UserDefined Init]
+                        , SumEnc                  TwoElemArr
+                        , TagSingleConstructors  'True
+                        , OmitNothingFields      'True
+                        ]
+                        OtherConfig
+-}
 {-
 data MyConfig = MyConfig { mcNameOfProcess :: String
                          , mcArgsToProcess :: [String]
@@ -56,63 +111,8 @@ data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
                         OtherConfig
 -}
 {-# LANGUAGE DataKinds #-}
-{-
-data MyConfig = MyConfig { mcNameOfProcess :: String
-                         , mcArgsToProcess :: [String]
-                         }
-  deriving (Read, Show, Eq, Ord, Generic)
-  deriving (ToJSON, FromJSON)
-       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "_" , Drop 2]
-                        , ConstructorTagModifier '[CamelTo2 "_"]
-                        ]
-                        MyConfig
-
-data Init
-instance Reifies Init (String -> String) where
-  reflect _ = init
-
-data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
-                               , otrArgsToProcess :: [String]
-                               }
-  deriving (Read, Show, Eq, Ord, Generic)
-  deriving (ToJSON, FromJSON)
-       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "-"]
-                        , ConstructorTagModifier '[CamelTo2 "-", UserDefined Init]
-                        , SumEnc                  TwoElemArr
-                        , TagSingleConstructors  'True
-                        , OmitNothingFields      'True
-                        ]
-                        OtherConfig
--}
 {-# LANGUAGE DeriveGeneric #-}
-{-
-data MyConfig = MyConfig { mcNameOfProcess :: String
-                         , mcArgsToProcess :: [String]
-                         }
-  deriving (Read, Show, Eq, Ord, Generic)
-  deriving (ToJSON, FromJSON)
-       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "_" , Drop 2]
-                        , ConstructorTagModifier '[CamelTo2 "_"]
-                        ]
-                        MyConfig
-
-data Init
-instance Reifies Init (String -> String) where
-  reflect _ = init
-
-data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
-                               , otrArgsToProcess :: [String]
-                               }
-  deriving (Read, Show, Eq, Ord, Generic)
-  deriving (ToJSON, FromJSON)
-       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "-"]
-                        , ConstructorTagModifier '[CamelTo2 "-", UserDefined Init]
-                        , SumEnc                  TwoElemArr
-                        , TagSingleConstructors  'True
-                        , OmitNothingFields      'True
-                        ]
-                        OtherConfig
--}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -152,6 +152,7 @@ module Data.Aeson.Generic.DerivingVia
     type TagSingleConstructors,
     StripConstructor,
     ToLower,
+    FirstLetterToLower
   )
 where
 
@@ -338,3 +339,8 @@ data ToLower
 
 instance Reifies ToLower (String -> String) where
   reflect _ = map toLower
+
+data FirstLetterToLower
+
+instance Reifies FirstLetterToLower (String -> String) where
+  reflect _ = \(h:t) -> toLower h : t
