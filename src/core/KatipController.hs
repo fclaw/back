@@ -55,7 +55,6 @@ module KatipController
 where
 
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TChan
 import Control.DeepSeq
 import Control.Lens
 import Control.Monad.Base (MonadBase)
@@ -64,7 +63,6 @@ import Control.Monad.Error.Class
 import Control.Monad.IO.Class
 import Control.Monad.RWS.Class
 import qualified Control.Monad.RWS.Strict as RWS
-import Control.Monad.Reader
 import Control.Monad.Reader.Class as R
 import Control.Monad.Time
 import Control.Monad.Trans.Control (MonadBaseControl)

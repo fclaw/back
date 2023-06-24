@@ -29,9 +29,6 @@ import Control.Lens.Iso.Extended
 import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Control.Monad.Reader
--- import Data.Aeson.WithField
--- import Data.Coerce
-
 import Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import Data.Generics.Product.Positions
@@ -43,7 +40,6 @@ import qualified Data.Text as T
 import Data.Time.Clock
 import qualified Data.Vector.Extended as V
 import Data.Word
-import GHC.Exception.Type
 import GHC.Generics
 import qualified Hasql.Connection as Hasql
 import Hasql.Session (CommandError (..), QueryError (..), ResultError (..), Session)

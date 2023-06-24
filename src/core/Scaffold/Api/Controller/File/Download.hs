@@ -13,7 +13,6 @@ import Conduit
 import Control.Lens
 import Control.Lens.Iso.Extended
 import Control.Monad
-import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Bifunctor
 import qualified Data.ByteString as B

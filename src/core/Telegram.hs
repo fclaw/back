@@ -10,7 +10,6 @@ module Telegram (Service (..), mkService, TelegramMsg (..), runMsgDeliver, File 
 
 import Control.Applicative
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TChan
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Catch
