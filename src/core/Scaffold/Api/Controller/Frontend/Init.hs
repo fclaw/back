@@ -24,6 +24,7 @@ import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
 import Data.Char (toLower)
 import Data.Default.Class
+import Data.Default.Class.Extended ()
 import Data.Functor (($>))
 import Data.List (stripPrefix)
 import qualified Data.Map as Map
@@ -50,7 +51,6 @@ import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
 import Scaffold.EnvKeys (repo, resources)
 import Scaffold.Transport.Id
 import Scaffold.Transport.Response
-import Data.Default.Class.Extended ()
 
 newtype Home = Home T.Text
   deriving stock (Generic)
@@ -98,31 +98,26 @@ deriveToSchemaFieldLabelModifier
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
-
-data Cfg = Cfg 
-     { cfgTelegramBot :: !T.Text
-     , cfgTelegramChat :: !T.Text
-     , cfgTelegramHost  :: !T.Text
-     , cfgToTelegram :: !Bool
-     , cfgScaffoldHost :: !T.Text
-     , cfgCssLink :: !T.Text
-     , cfgCssFiles  :: ![T.Text]
-     , cfgIsCaptcha :: !Bool
-     }
+data Env = Env
+  { envToTelegram :: !Bool,
+    envIsCaptcha :: !Bool,
+    envLogLevel :: !T.Text,
+    overriddenByLocal :: !Bool
+  }
   deriving stock (Generic)
   deriving
     (ToJSON, FromJSON)
     via WithOptions
-          '[FieldLabelModifier '[UserDefined FirstLetterToLower,  UserDefined (StripConstructor Cfg)]]
-          Cfg
+          '[FieldLabelModifier '[UserDefined FirstLetterToLower, UserDefined (StripConstructor Env)]]
+          Env
 
-instance Default Cfg
+instance Default Env
 
 deriveToSchemaFieldLabelModifier
-  ''Cfg
+  ''Env
   [|
     \s ->
-      let (head : tail) = show (typeRep (Proxy @Cfg))
+      let (head : tail) = show (typeRep (Proxy @Env))
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
@@ -133,7 +128,7 @@ data Init = Init
     lang :: ![Lang],
     page :: ![Location],
     cookies :: ![T.Text],
-    cfg :: !(Maybe Cfg)
+    env :: !(Maybe Env)
   }
   deriving stock (Generic)
   deriving
@@ -164,13 +159,15 @@ controller _ = do
       forConcurrently
         (reqXs (repo (snd docs_repo)) (resources (snd docs_repo)))
         (liftIO . runWithConfiguration (fst docs_repo) . repos_get_content)
-  
+
     -- front
     let front_repo = repoXs Map.! "front"
     resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef "master" (repo (snd front_repo)))
-    resp_cfg <- for (reqXs (repo (snd front_repo)) (resources (snd front_repo))) 
-                    (liftIO . runWithConfiguration (fst front_repo) . repos_get_content)
-  
+    resp_cfg <-
+      for
+        (reqXs (repo (snd front_repo)) (resources (snd front_repo)))
+        (liftIO . runWithConfiguration (fst front_repo) . repos_get_content)
+
     -- css
     let css_repo = repoXs Map.! "frontCSS"
     resp_css <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst css_repo) $ git_get_ref (mkGitRef "main" (repo (snd css_repo)))
@@ -179,7 +176,7 @@ controller _ = do
           [homeCnt, aboutCnt, serviceCnt] <- sequence $ map handleResp resp_frontDocs
           shaCommit <- resp_front
           shaCommitCss <- resp_css
-          cfg <- sequence $ map (handleRespYaml @Cfg) resp_cfg
+          cfg <- sequence $ map (handleRespYaml @Env) resp_cfg
           pure $
             Init
               ( def
@@ -216,4 +213,5 @@ handleRespFront resp =
     else Left $ show (responseBody resp) ^. stext
 
 reqXs repo = map (flip (mkRepos_get_contentParameters "fclaw") repo)
+
 mkGitRef branch = mkGit_get_refParameters "fclaw" ("heads/" <> branch)
