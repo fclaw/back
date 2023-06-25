@@ -33,9 +33,7 @@ data FrontendApi route = FrontendApi
     _frontendApiTranslate ::
       route
         :- "translate"
-          :> Capture "resource" Resource
           :> Capture "lang" Lang
-          :> QueryParam' '[Optional, Strict] "location" Location
           :> Get '[JSON] (Response Translation),
     _frontendApiGetCookies ::
       route

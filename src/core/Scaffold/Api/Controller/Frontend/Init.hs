@@ -17,11 +17,12 @@ module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
 import Control.Concurrent.Async.Lifted (forConcurrently)
 import Control.Lens
-import Control.Lens.Iso.Extended (stext)
+import Control.Lens.Iso.Extended (stext, textbs)
 import Control.Monad (when)
 import Control.Monad.IO.Class
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
+import Data.ByteString.Base64 (decodeLenient)
 import Data.Char (toLower)
 import Data.Default.Class
 import Data.Default.Class.Extended ()
@@ -40,14 +41,15 @@ import GHC.Generics hiding (from, to)
 import Katip
 import KatipController hiding (Service)
 import Network.HTTP.Client (responseBody, responseStatus)
+import qualified Network.HTTP.Client as HTTP
 import Network.HTTP.Types.Status (accepted202, ok200)
 import "github" OpenAPI.Common
 import OpenAPI.Operations.Git_get_ref
 import OpenAPI.Operations.Repos_get_content
+import OpenAPI.Types.ContentFile
 import OpenAPI.Types.GitRef
 import Scaffold.Api.Controller.Frontend.GetCookies (cookieTitle)
-import Scaffold.Api.Controller.Frontend.Translate (Lang (..), Location, handleResp, handleRespYaml)
-import qualified Scaffold.Api.Controller.Frontend.Translate as Tr
+import Scaffold.Api.Controller.Frontend.Translate (Lang (..), handleRespYaml)
 import Scaffold.EnvKeys (repo, resources)
 import Scaffold.Transport.Id
 import Scaffold.Transport.Response
@@ -126,7 +128,6 @@ data Init = Init
     shaCommit :: !T.Text,
     shaCommitCss :: !T.Text,
     lang :: ![Lang],
-    page :: ![Location],
     cookies :: ![T.Text],
     env :: !(Maybe Env)
   }
@@ -147,7 +148,7 @@ deriveToSchemaFieldLabelModifier
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
-defInit = Init def def def def def def def
+defInit = Init def def def def def def
 
 controller :: Maybe (Id "browserIdent") -> KatipControllerM (Response Init)
 controller _ = do
@@ -188,7 +189,6 @@ controller _ = do
               shaCommit
               shaCommitCss
               [English .. Turkish]
-              [Tr.Home .. Tr.Service]
               [cookieTitle]
               (case cfg of [x] -> Just x; _ -> Nothing)
 
@@ -199,6 +199,24 @@ controller _ = do
           $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
   return $ fromMaybe (Ok defInit) resp
+
+handleResp :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
+handleResp resp =
+  if responseStatus resp == ok200
+    || responseStatus resp == accepted202
+    then
+      let mkResp
+            ( Repos_get_contentResponse200
+                ( Repos_get_contentResponseBody200Content_file
+                    (Content_file {..})
+                  )
+              ) =
+              Right $ content_fileContent ^. textbs . to decodeLenient . from textbs
+          mkResp (Repos_get_contentResponse200 _) =
+            Left "there is no file: directory, symlink, submodule"
+          mkResp err = Left $ (show err) ^. stext
+       in mkResp $ responseBody resp
+    else Left $ show (responseBody resp) ^. stext
 
 handleRespFront resp =
   if responseStatus resp == ok200

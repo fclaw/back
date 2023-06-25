@@ -7,6 +7,7 @@ module Data.Swagger.Schema.Extended
     deriveToSchema,
     deriveToSchemaDef,
     deriveToSchemaFieldLabelModifier,
+    deriveToSchemaConstructorTag,
     module Data.Swagger.Schema,
   )
 where
@@ -52,6 +53,14 @@ deriveToSchemaFieldLabelModifier name modify =
     instance ToSchema $(conT name) where
       declareNamedSchema =
         genericDeclareNamedSchema @($(conT name)) $ defaultSchemaOptions {fieldLabelModifier = $modify}
+    |]
+
+deriveToSchemaConstructorTag :: Name -> Q Exp -> Q [Dec]
+deriveToSchemaConstructorTag name modify =
+  [d|
+    instance ToSchema $(conT name) where
+      declareNamedSchema =
+        genericDeclareNamedSchema @($(conT name)) $ defaultSchemaOptions {constructorTagModifier = $modify}
     |]
 
 instance ToSchema DiffTime where

@@ -129,11 +129,11 @@ frontend =
               (Frontend.Init.controller browserIdent)
           ),
       _frontendApiTranslate =
-        \page resource lang ->
+        \lang ->
           flip logExceptionM ErrorS $
             katipAddNamespace
               (Namespace ["frontend", "translate"])
-              (Frontend.Translate.controller page resource lang),
+              (Frontend.Translate.controller lang),
       _frontendApiGetCookies =
         flip
           logExceptionM

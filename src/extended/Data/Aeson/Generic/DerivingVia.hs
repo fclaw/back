@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-
 data MyConfig = MyConfig { mcNameOfProcess :: String
                          , mcArgsToProcess :: [String]
@@ -112,7 +113,6 @@ data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
 -}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE ExplicitNamespaces #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -152,7 +152,8 @@ module Data.Aeson.Generic.DerivingVia
     type TagSingleConstructors,
     StripConstructor,
     ToLower,
-    FirstLetterToLower
+    FirstLetterToLower,
+    StripConstructorParamType,
   )
 where
 
@@ -175,7 +176,7 @@ import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (..))
 import Data.Reflection (Reifies (..))
-import Data.Typeable (Typeable, typeRep)
+import Data.Typeable (Typeable, typeRep, typeRepTyCon)
 import GHC.Generics (Generic, Rep)
 import GHC.TypeLits
   ( KnownNat,
@@ -343,4 +344,11 @@ instance Reifies ToLower (String -> String) where
 data FirstLetterToLower
 
 instance Reifies FirstLetterToLower (String -> String) where
-  reflect _ = \(h:t) -> toLower h : t
+  reflect _ = \(h : t) -> toLower h : t
+
+data StripConstructorParamType a
+
+instance Typeable a => Reifies (StripConstructorParamType a) (String -> String) where
+  reflect _ = \s ->
+    let (head : tail) = show $ typeRepTyCon (typeRep (Proxy @a))
+     in fromMaybe s $ stripPrefix (toLower head : tail) s
