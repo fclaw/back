@@ -31,13 +31,13 @@ import Data.List (stripPrefix)
 import qualified Data.Map as Map
 import Data.Maybe (isNothing)
 import Data.Proxy (Proxy (..))
-import Data.Swagger (ToSchema (..), genericDeclareNamedSchema)
-import Data.Swagger.ParamSchema (defaultSchemaOptions, fieldLabelModifier)
+import Data.Swagger hiding (Response)
 import Data.Swagger.Schema.Extended (deriveToSchemaFieldLabelModifier)
 import qualified Data.Text as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable, typeRep, typeRepTyCon)
 import Data.Yaml (decodeEither', prettyPrintParseException)
+import GHC.Exts
 import GHC.Generics (Generic)
 import Katip
 import KatipController
@@ -74,14 +74,25 @@ data Map k v = Map {mapKey :: k, mapValue :: v}
           (Map k v)
 
 instance (ToSchema k, ToSchema v, Typeable k, Typeable v) => ToSchema (Map k v) where
-  declareNamedSchema =
-    genericDeclareNamedSchema @(Map k v) $
-      defaultSchemaOptions
-        { fieldLabelModifier =
-            \s ->
-              let (head : tail) = show $ typeRepTyCon $ typeRep (Proxy @(Map k v))
-               in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
-        }
+  declareNamedSchema _ = do
+    key <- declareSchemaRef (Proxy @k)
+    value <- declareSchemaRef (Proxy @v)
+    let ident =
+          T.intercalate
+            "."
+            [ T.pack (show (typeRepTyCon (typeRep (Proxy @(Map k v))))),
+              T.pack (show (typeRep (Proxy @k))),
+              T.pack (show (typeRep (Proxy @v)))
+            ]
+    pure $
+      NamedSchema (Just ident) $
+        mempty
+          & type_ ?~ SwaggerObject
+          & properties
+            .~ fromList
+              [ ("key", key),
+                ("value", value)
+              ]
 
 data Translation = Translation
   { translationPage :: [Map Enum.Page T.Text],
