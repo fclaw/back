@@ -15,14 +15,12 @@
 
 module Scaffold.Api.Controller.Frontend.Init (controller, Init) where
 
-import Control.Concurrent.Async.Lifted (forConcurrently)
 import Control.Lens
-import Control.Lens.Iso.Extended (stext, textbs)
+import Control.Lens.Iso.Extended (stext)
 import Control.Monad (when)
 import Control.Monad.IO.Class
 import Data.Aeson hiding (Error)
 import Data.Aeson.Generic.DerivingVia
-import Data.ByteString.Base64 (decodeLenient)
 import Data.Char (toLower)
 import Data.Default.Class
 import Data.Default.Class.Extended ()
@@ -41,12 +39,10 @@ import GHC.Generics hiding (from, to)
 import Katip
 import KatipController hiding (Service)
 import Network.HTTP.Client (responseBody, responseStatus)
-import qualified Network.HTTP.Client as HTTP
 import Network.HTTP.Types.Status (accepted202, ok200)
 import "github" OpenAPI.Common
 import OpenAPI.Operations.Git_get_ref
 import OpenAPI.Operations.Repos_get_content
-import OpenAPI.Types.ContentFile
 import OpenAPI.Types.GitRef
 import Scaffold.Api.Controller.Frontend.GetCookies (cookieTitle)
 import Scaffold.Api.Controller.Frontend.Translate (Lang (..), handleRespYaml)
@@ -78,28 +74,6 @@ instance Default Service
 
 instance ToSchema Service
 
-data Content = Content
-  { home :: Home,
-    about :: About,
-    service :: Service
-  }
-  deriving stock (Generic)
-  deriving
-    (ToJSON, FromJSON)
-    via WithOptions
-          '[FieldLabelModifier '[UserDefined (StripConstructor Content)]]
-          Content
-
-instance Default Content
-
-deriveToSchemaFieldLabelModifier
-  ''Content
-  [|
-    \s ->
-      let (head : tail) = show (typeRep (Proxy @Content))
-       in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
-    |]
-
 data Env = Env
   { envToTelegram :: !Bool,
     envIsCaptcha :: !Bool,
@@ -124,8 +98,7 @@ deriveToSchemaFieldLabelModifier
     |]
 
 data Init = Init
-  { content :: !Content,
-    shaCommit :: !T.Text,
+  { shaCommit :: !T.Text,
     shaCommitCss :: !T.Text,
     lang :: ![Lang],
     cookies :: ![T.Text],
@@ -148,19 +121,12 @@ deriveToSchemaFieldLabelModifier
        in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
     |]
 
-defInit = Init def def def def def def
+defInit = Init def def def def def
 
 controller :: Maybe (Id "browserIdent") -> KatipControllerM (Response Init)
 controller _ = do
   cfg <- fmap (^. katipEnv . github) ask
   resp <- for cfg $ \repoXs -> do
-    -- frontDocs
-    let docs_repo = repoXs Map.! "frontDocs"
-    resp_frontDocs <-
-      forConcurrently
-        (reqXs (repo (snd docs_repo)) (resources (snd docs_repo)))
-        (liftIO . runWithConfiguration (fst docs_repo) . repos_get_content)
-
     -- front
     let front_repo = repoXs Map.! "front"
     resp_front <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst front_repo) $ git_get_ref (mkGitRef "master" (repo (snd front_repo)))
@@ -174,18 +140,11 @@ controller _ = do
     resp_css <- fmap handleRespFront $ liftIO $ runWithConfiguration (fst css_repo) $ git_get_ref (mkGitRef "main" (repo (snd css_repo)))
 
     let mkInit = do
-          [homeCnt, aboutCnt, serviceCnt] <- sequence $ map handleResp resp_frontDocs
           shaCommit <- resp_front
           shaCommitCss <- resp_css
           cfg <- sequence $ map (handleRespYaml @Env) resp_cfg
           pure $
             Init
-              ( def
-                  { home = Home homeCnt,
-                    about = About aboutCnt,
-                    service = Service serviceCnt
-                  }
-              )
               shaCommit
               shaCommitCss
               [English .. Turkish]
@@ -199,24 +158,6 @@ controller _ = do
           $> Error (asError @T.Text "something went wrong")
   when (isNothing resp) $ $(logTM) InfoS "github key hasn't been found. skip"
   return $ fromMaybe (Ok defInit) resp
-
-handleResp :: HTTP.Response Repos_get_contentResponse -> Either T.Text T.Text
-handleResp resp =
-  if responseStatus resp == ok200
-    || responseStatus resp == accepted202
-    then
-      let mkResp
-            ( Repos_get_contentResponse200
-                ( Repos_get_contentResponseBody200Content_file
-                    (Content_file {..})
-                  )
-              ) =
-              Right $ content_fileContent ^. textbs . to decodeLenient . from textbs
-          mkResp (Repos_get_contentResponse200 _) =
-            Left "there is no file: directory, symlink, submodule"
-          mkResp err = Left $ (show err) ^. stext
-       in mkResp $ responseBody resp
-    else Left $ show (responseBody resp) ^. stext
 
 handleRespFront resp =
   if responseStatus resp == ok200
