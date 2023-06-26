@@ -6,7 +6,7 @@
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "",
-        "sha256": "sha256:0kfr409is2fdzylb0fzjx5arp6hmmb6r1sn14m8h0pf3pylqlg8q",
+        "sha256": "sha256:1gj6kz9nzc0m524492kczdmix0brkgi3dxr79jpla7g8wcqy8clr",
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/nixos-23.05.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
