@@ -108,7 +108,7 @@ data Init = Init
   deriving
     (ToJSON, FromJSON)
     via WithOptions
-          '[FieldLabelModifier '[UserDefined (StripConstructor Init)]]
+          '[OmitNothingFields True, FieldLabelModifier '[UserDefined (StripConstructor Init)]]
           Init
 
 instance Default Init
