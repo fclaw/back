@@ -78,7 +78,7 @@ data Env = Env
   { envToTelegram :: !Bool,
     envIsCaptcha :: !Bool,
     envLogLevel :: !T.Text,
-    overriddenByLocal :: !Bool
+    envOverriddenByLocal :: !Bool
   }
   deriving stock (Generic)
   deriving
@@ -94,7 +94,7 @@ deriveToSchemaFieldLabelModifier
   [|
     \s ->
       let (head : tail) = show (typeRep (Proxy @Env))
-       in maybe s (map toLower) (stripPrefix (toLower head : tail) s)
+       in (fromMaybe s (stripPrefix (toLower head : tail) s)) & ix 0 %~ toLower
     |]
 
 data Init = Init
