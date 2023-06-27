@@ -56,7 +56,7 @@ ARG env_yaml
 ARG env_captcha_key
 
 ENV MUTE_500 ${mute_500}
-ENV YAML_ENV ${env_yaml} 
+ENV YAML_ENV ${env_yaml}
 
 
 EXPOSE 12000/tcp
@@ -74,7 +74,7 @@ RUN echo \
 "   front:\n"\
 "      repo: turkish-trade-house\n"\ 
 "      key: $github_tth_main_key\n"\
-"      resources: []\n"\
+"      resources: [env.yaml]\n"\
 "   frontCSS:\n"\
 "      repo: turkish-trade-house-style-and-css\n"\
 "      key: $github_tth_css\n"\
